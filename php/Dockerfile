@@ -27,9 +27,15 @@ RUN useradd -u 1000 -ms /bin/bash -g www www
 # Создание рабочей директории
 WORKDIR /var/www/html
 
+# Копирование скрипта точки входа ДО смены пользователя
+COPY php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Смена текущего пользователя на www
 USER www
 
-# Открытие порта 9000 и запуск php-fpm сервера
+# Открытие порта 9000
 EXPOSE 9000
-CMD ["php-fpm"]
+
+# Использование скрипта точки входа (ПРАВИЛЬНЫЙ ПУТЬ)
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

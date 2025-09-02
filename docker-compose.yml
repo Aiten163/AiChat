@@ -8,6 +8,9 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME}-php
     restart: unless-stopped
     working_dir: /var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
     volumes:
       - ./src:/var/www/html
     networks:
@@ -20,10 +23,10 @@ services:
 
   nginx:
     image: nginx:${NGINX_VERSION}
-    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    container_name: ai-nginx
     restart: unless-stopped
     ports:
-      - "${NGINX_PORT}:80"
+      - "${NGINX_PORT}:${NGINX_PORT}"
     environment:
       - NGINX_HOST=${NGINX_HOST}
       - NGINX_PORT=${NGINX_PORT}
@@ -55,11 +58,15 @@ services:
       MYSQL_PASSWORD: ${DB_USER_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "${DB_PORT}:3306"
     networks:
       - app-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}" ]
+      interval: 5s
+      timeout: 10s
+      retries: 20
 
 volumes:
   mysql_data:

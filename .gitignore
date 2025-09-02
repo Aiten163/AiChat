@@ -1,12 +1,10 @@
-# Docker
 mysql_data/
 .phpunit.result.cache
 
-# OS
 .DS_Store
 Thumbs.db
 
-# IDE
 .idea/
 *.swp
 *.swo
+.env
