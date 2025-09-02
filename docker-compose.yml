@@ -1,13 +1,12 @@
-version: '3.8'
-
 services:
   php:
     build:
       context: .
       dockerfile: php/Dockerfile
-    container_name: ${COMPOSE_PROJECT_NAME}-php
+    container_name: ${COMPOSE_PROJECT_NAME:-faberlicai}-php
     restart: unless-stopped
     working_dir: /var/www/html
+    user: "${UID_HOST}:${GID_HOST}"
     depends_on:
       mysql:
         condition: service_healthy
@@ -20,13 +19,15 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USER_NAME}
       - DB_PASSWORD=${DB_USER_PASSWORD}
+      - UID_HOST=${UID_HOST}
+      - GID_HOST=${GID_HOST}
 
   nginx:
-    image: nginx:${NGINX_VERSION}
-    container_name: ai-nginx
+    image: nginx:${NGINX_VERSION:-alpine}
+    container_name: ${COMPOSE_PROJECT_NAME:-faberlicai}-nginx
     restart: unless-stopped
     ports:
-      - "${NGINX_PORT}:${NGINX_PORT}"
+      - "${NGINX_PORT}:80"
     environment:
       - NGINX_HOST=${NGINX_HOST}
       - NGINX_PORT=${NGINX_PORT}
@@ -49,7 +50,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    container_name: ${COMPOSE_PROJECT_NAME:-faberlicai}-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
