@@ -3,10 +3,8 @@
 cd /var/www/html
 
 # Установка зависимостей Composer
-if [ ! -d "vendor" ] && [ -f "composer.json" ]; then
-    echo "Installing Composer dependencies..."
-    composer install --no-dev --optimize-autoloader --no-interaction
-fi
+echo "Installing Composer dependencies..."
+composer install --no-dev --optimize-autoloader --no-interaction
 
 # Настройка .env файла если его нет
 if [ ! -f .env ] && [ -f .env.example ]; then
