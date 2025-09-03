@@ -1,0 +1,229 @@
+body {
+    background-color: rgb(1, 4, 9);
+    color: #e6edf3;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: rgb(13, 17, 23) !important;
+    border-bottom: 1px solid #30363d;
+}
+
+#container {
+    background-color: rgb(13, 17, 23);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+    padding: 0;
+}
+
+#history-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    min-height: 200px;
+}
+
+#input-area {
+    background-color: rgb(13, 17, 23);
+    border-top: 1px solid #30363d;
+    padding: 1rem;
+    position: relative;
+    max-height: 250px;
+}
+
+#input-wrapper {
+    background-color: rgb(22, 27, 34);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+#input-model select {
+    background-color: rgb(33, 38, 45);
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 120px;
+}
+
+#text-request {
+    flex: 1;
+    position: relative;
+}
+
+#text-request textarea, #text-request label  {
+    background-color: transparent;
+    color: #e6edf3;
+    border: none;
+    resize: none;
+    width: 100%;
+    min-height: 40px;
+    max-height: 250px;
+    padding: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    outline: none;
+    overflow-y: auto;
+}
+
+#text-request textarea::placeholder {
+    color: #7d8590;
+}
+
+#button-send {
+    margin-bottom: 0.5rem;
+}
+
+#button-send button {
+    background-color: rgb(31, 111, 235);
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#button-send button:hover {
+    background-color: rgb(41, 121, 255);
+}
+
+#button-send button:disabled {
+    background-color: #30363d;
+    cursor: not-allowed;
+}
+
+#button-send img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+}
+
+/* Стили для сообщений чата */
+.message {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.user-message {
+    background-color: rgb(57, 88, 133);
+    margin-left: auto;
+}
+
+.ai-message {
+    background-color: rgb(33, 38, 45);
+    border: 1px solid #30363d;
+}
+
+@media (max-width: 768px) {
+    #input-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #input-model {
+        align-self: flex-start;
+    }
+
+    #text-request textarea {
+        min-height: 60px;
+
+    }
+}
+
+/* Стили скроллбара только для textarea */
+#text-request textarea::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+#text-request textarea::-webkit-scrollbar-track {
+    background: rgba(48, 54, 61, 0.2);
+    border-radius: 3px;
+    margin: 2px;
+}
+
+#text-request textarea::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, rgba(31, 111, 235, 0.6), rgba(41, 121, 255, 0.7));
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#text-request textarea::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, rgba(41, 121, 255, 0.8), rgba(51, 131, 255, 0.9));
+}
+
+#text-request textarea::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(45deg, rgba(21, 101, 225, 0.7), rgba(31, 111, 235, 0.8));
+}
+
+#text-request textarea::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Плавная анимация для textarea скроллбара */
+#text-request textarea::-webkit-scrollbar-thumb {
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+#text-request textarea:hover::-webkit-scrollbar-thumb,
+#text-request textarea:focus::-webkit-scrollbar-thumb {
+    opacity: 1;
+}
+
+/* Для Firefox */
+#text-request textarea {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(31, 111, 235, 0.6) rgba(48, 54, 61, 0.2);
+}
+
+/* Анимация появления при фокусе */
+#text-request textarea {
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.3s ease;
+}
+
+#text-request textarea:hover,
+#text-request textarea:focus {
+    scrollbar-color: rgba(31, 111, 235, 0.6) rgba(48, 54, 61, 0.2);
+}
+
+/* Убираем стандартный скроллбар в IE */
+#text-request textarea {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+/* Дополнительные стили для лучшего внешнего вида */
+#text-request textarea {
+    scroll-behavior: smooth;
+    overflow: auto;
+}
+
+/* Для мобильных устройств делаем скроллбар тоньше */
+@media (max-width: 768px) {
+    #text-request textarea::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    #text-request textarea::-webkit-scrollbar-track {
+        background: rgba(48, 54, 61, 0.1);
+    }
+}
