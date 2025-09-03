@@ -1,6 +1,11 @@
 FROM php:8.4-fpm
 
-# Установка зависимостей
+COPY php/setup-permissions.sh /usr/local/bin/setup-permissions
+RUN chmod +x /usr/local/bin/setup-permissions
+
+# Запускаем настройку прав при старте
+RUN /usr/local/bin/setup-permissions
+
 RUN apt-get update && apt-get install -y \
     git \
     curl \
