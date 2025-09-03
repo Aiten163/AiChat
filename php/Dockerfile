@@ -1,5 +1,5 @@
 FROM php:8.4-fpm
-
+RUN umask 0002
 # Установка зависимостей
 RUN apt-get update && apt-get install -y \
     git \
