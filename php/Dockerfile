@@ -1,46 +1,42 @@
 FROM php:8.4-fpm
 
-COPY php/setup-permissions.sh /usr/local/bin/setup-permissions
-RUN chmod +x /usr/local/bin/setup-permissions
-
-# Запускаем настройку прав при старте
-RUN /usr/local/bin/setup-permissions
-
+# Устанавливаем зависимости
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libzip-dev
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip libzip-dev && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Очистка кеша
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Установка расширений PHP
+# Устанавливаем расширения PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
-# Установка Composer
+# Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Создание пользователя для приложения
-RUN groupadd -g 1000 www
-RUN useradd -u 1000 -ms /bin/bash -g www www
+# Создаем пользователя и группу
+RUN groupadd -g 1000 www && \
+    useradd -u 1000 -ms /bin/bash -g www www
 
-# Создание рабочей директории
+# Создаем рабочую директорию
 WORKDIR /var/www/html
 
-# Копирование скрипта точки входа ДО смены пользователя
-COPY php/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Создаем директорию для скриптов
+RUN mkdir -p /docker
 
-# Смена текущего пользователя на www
+# Копируем entrypoint скрипт в правильное место
+COPY php/entrypoint.sh /docker/entrypoint.sh
+RUN chmod +x /docker/entrypoint.sh
+
+# Копируем setup-permissions скрипт
+COPY php/setup-permissions.sh /docker/setup-permissions.sh
+RUN chmod +x /docker/setup-permissions.sh
+
+# Копируем приложение с правильными правами (раскомментируйте когда нужно)
+# COPY --chown=www:www . .
+
+# Меняем пользователя
 USER www
 
-# Открытие порта 9000
 EXPOSE 9000
 
-# Использование скрипта точки входа (ПРАВИЛЬНЫЙ ПУТЬ)
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# Используем entrypoint (указываем полный путь)
+ENTRYPOINT ["/docker/entrypoint.sh"]
+CMD ["php-fpm"]
