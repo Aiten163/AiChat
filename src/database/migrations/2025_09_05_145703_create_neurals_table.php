@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('neurals', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('name', 40);
+            $table->string('link', 150);
         });
     }
 
