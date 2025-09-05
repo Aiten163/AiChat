@@ -77,7 +77,7 @@ services:
       - PMA_USER=${DB_USER_NAME}
       - PMA_PASSWORD=${DB_USER_PASSWORD}
     ports:
-      - "8081:80"
+      - "${IP_HOST}:8081:80"
 volumes:
   mysql_data:
 
