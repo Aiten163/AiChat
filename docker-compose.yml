@@ -69,6 +69,15 @@ services:
       timeout: 10s
       retries: 20
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=${DB_HOST}
+      - PMA_USER=${DB_USER_NAME}
+      - PMA_PASSWORD=${DB_USER_PASSWORD}
+    ports:
+      - "8081:80"
 volumes:
   mysql_data:
 
