@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Orchid\Layouts\Card;
+namespace App\Orchid\Layouts\Neural;
 
-use App\Models\Card;
+use App\Models\Neural;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\TD;
-class CardsTable extends Table
+class NeuralTable extends Table
 {
     /**
      * Data source.
@@ -17,7 +17,7 @@ class CardsTable extends Table
      *
      * @var string
      */
-    protected $target = 'cards';
+    protected $target = 'neural';
 
     /**
      * Get the table cells to be displayed.
@@ -28,28 +28,27 @@ class CardsTable extends Table
     {
         return [
             TD::make('id', 'ID')->sort()->filter(TD::FILTER_NUMERIC),
-            TD::make('uid', 'Шифр')->sort()->filter(TD::FILTER_TEXT),
-            TD::make('level', 'Уровень')->sort()->filter(),
-            TD::make('mrsu_id', 'ID mrsu')->sort()->filter(),
-            TD::make('action', '')->cantHide()->render(function (Card $Card)
+            TD::make('name', 'Название')->sort()->filter(),
+            TD::make('link', 'API')->sort()->filter(),
+            TD::make('action', '')->cantHide()->render(function (Neural $neural)
             {
                 return ModalToggle::make("")
-                    ->modal('editcard')
+                    ->modal('editneural')
                     ->icon('pen')
                     ->method('update')
-                    ->modalTitle('Редактирование карточки '.$Card->id)
+                    ->modalTitle('Редактирование'.$neural->id)
                     ->asyncParameters([
-                            'card' =>$Card->id
+                            'neural' =>$neural->id
                         ]
                     );
             }),
             TD::make('action','')->cantHide()
-                ->render(function (Card $Card)
+                ->render(function (Neural $neural)
                 {
                     return Button::make("")
                         ->icon('trash')
                         ->method('delete',[
-                            'card'=>$Card->id
+                            'neural'=>$neural->id
                         ]);
                 })
         ];

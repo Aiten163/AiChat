@@ -34,6 +34,10 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
+            Menu::make('Нейросети')
+                ->icon('bs.door-closed')
+                ->route('platform.neural'),
+
             Menu::make(__('Users'))
                 ->icon('bs.people')
                 ->route('platform.systems.users')

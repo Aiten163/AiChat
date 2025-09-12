@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name', 40);
             $table->string('link', 150);
+            $table->string('name_return', 50);
         });
     }
 

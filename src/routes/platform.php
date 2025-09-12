@@ -35,6 +35,9 @@ use Tabuna\Breadcrumbs\Trail;
 Route::screen('/main', PlatformScreen::class)
     ->name('platform.main');
 
+Route::screen('/neurals', \App\Orchid\Screens\NeuralScreen::class )
+    ->name('platform.neurals');
+
 // Platform > Profile
 Route::screen('profile', UserProfileScreen::class)
     ->name('platform.profile')
@@ -84,12 +87,3 @@ Route::screen('roles', RoleListScreen::class)
         ->parent('platform.index')
         ->push(__('Roles'), route('platform.systems.roles')));
 
-// Example...
-Route::screen('example', ExampleScreen::class)
-    ->name('platform.example')
-    ->breadcrumbs(fn (Trail $trail) => $trail
-        ->parent('platform.index')
-        ->push('Example Screen'));
-
-
-// Route::screen('idea', Idea::class, 'platform.screens.idea');

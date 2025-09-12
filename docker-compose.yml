@@ -3,24 +3,20 @@ services:
     build:
       context: .
       dockerfile: php/Dockerfile
+      args:
+        - UID_HOST=${UID_HOST:-1000}
+        - GID_HOST=${GID_HOST:-1000}
     container_name: faberlicai-php
     restart: unless-stopped
     working_dir: /var/www/html
-    user: "${UID_HOST}:${GID_HOST}"
     depends_on:
       mysql:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
+      - ./php/entrypoint.sh:/docker/entrypoint.sh
     networks:
       - app-network
-    environment:
-      - DB_HOST=mysql
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USER_NAME}
-      - DB_PASSWORD=${DB_USER_PASSWORD}
-      - UID_HOST=${UID_HOST}
-      - GID_HOST=${GID_HOST}
 
   nginx:
     image: nginx:${NGINX_VERSION:-alpine}
@@ -78,6 +74,8 @@ services:
       - PMA_PASSWORD=${DB_USER_PASSWORD}
     ports:
       - "${IP_HOST}:8081:80"
+    networks:
+      - app-network
 volumes:
   mysql_data:
 
