@@ -1,0 +1,10 @@
+<?php
+
+namespace App\Models;
+
+use LdapRecord\Models\ActiveDirectory\Group as BaseGroup;
+
+class AdGroup extends BaseGroup
+{
+    protected string|null $connection = 'default';
+}

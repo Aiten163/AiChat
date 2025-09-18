@@ -77,6 +77,32 @@ services:
       - "${IP_HOST}:8081:80"
     networks:
       - app-network
+
+  ad-server:
+    image: nowsci/samba-domain:latest
+    container_name: ad-server
+    hostname: DC1
+    ports:
+      - "389:389"
+      - "636:636"
+    environment:
+      - DOMAIN=faberlic.ru
+      - DOMAINPASS=Admin123!
+      - SAMBA_DOMAIN_LOGONS=yes
+      - SAMBA_NETBIOS_NAME=DC1
+      - SAMBA_REALM=FABERLIC.RU
+      - HOSTIP=127.0.0.1
+      - SAMBA_NO_SHARES=yes
+      - SAMBA_LDAP_STRONG_AUTH=no
+      - SAMBA_LDAP_SSL=no
+      - SAMBA_SERVER_SIGNING=disabled
+      - SAMBA_NTLM_AUTH=yes
+      - SAMBA_LANMAN_AUTH=yes
+    networks:
+      - app-network
+    restart: unless-stopped
+    privileged: true
+
 volumes:
   mysql_data:
 

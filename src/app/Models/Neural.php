@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Where;
 
-class neural extends Model
+class Neural extends Model
 {
     use Filterable;
     public $timestamps = false;

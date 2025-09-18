@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('neurals', function (Blueprint $table) {
             $table->id();
             $table->string('name', 40);
-            $table->string('link', 150);
-            $table->string('name_return', 50);
+            $table->string('description', 150);
         });
     }
 

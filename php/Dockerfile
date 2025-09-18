@@ -45,9 +45,8 @@ RUN chmod +x /docker/entrypoint.sh
 
 # Меняем владельца рабочей директории
 RUN chown -R www:www /var/www/html
-
+USER www
 # Устанавливаем точку входа (ДОБАВЛЕНО)
 ENTRYPOINT ["/docker/entrypoint.sh"]
-
 EXPOSE 9000
 CMD ["php-fpm"]
