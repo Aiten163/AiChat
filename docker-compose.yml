@@ -2,7 +2,7 @@ services:
   php:
     build:
       context: .
-      dockerfile: php/Dockerfile
+      dockerfile: php/Dockerfile  # путь относительно корня проекта
       args:
         - UID_HOST=${UID_HOST:-1000}
         - GID_HOST=${GID_HOST:-1000}
@@ -14,8 +14,8 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
-      - ./php/entrypoint.sh:/docker/entrypoint.sh
-      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      # УБРАТЬ монтирование entrypoint, т.к. он уже в образе
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
       - app-network
 
