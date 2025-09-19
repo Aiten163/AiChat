@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <script src="bootstrap/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <script src="bootstrap/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href={{ asset("css/style.css") }}>
 </head>
 <body>
@@ -16,7 +16,13 @@
                     <h1 class="h4 mb-0">Faberlic AI</h1>
                 </div>
                 <div class="col-auto">
-                    <button type="button" class="btn text-sm-end text-white border-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    @auth('admin')
+                        Админка
+                    @endauth
+                    @auth
+                        аааааааааа
+                    @endauth
+                    <button type="button" id="loginBtn" class="btn text-sm-end text-white border-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
                         Вход
                     </button>
                     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -28,7 +34,8 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="row g-3 align-items-center">
-                                        <form action="{{route('login')}}">
+                                        <form action="">
+                                            @csrf
                                             <div class="col-auto">
                                                 <label for="password" class="col-form-label">Пароль</label>
                                             </div>

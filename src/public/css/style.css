@@ -227,3 +227,7 @@ header {
         background: rgba(48, 54, 61, 0.1);
     }
 }
+#loginBtn {
+    border-color: white;
+    background-color: rgb(60 56 67);
+}

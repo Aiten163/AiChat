@@ -28,18 +28,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
-        'permissions',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'permissions'          => 'array',
-        'email_verified_at'    => 'datetime',
-    ];
 
     /**
      * The attributes for which you can use filters in url.
@@ -66,4 +56,10 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
     ];
+    public function hasAccess(string $permission, $cache = true): bool
+    {
+
+        return $this->role === 'admin';
+
+    }
 }

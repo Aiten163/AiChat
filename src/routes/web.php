@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LdapController;
-use App\Http\Controllers\ldap;
+use App\Http\Controllers\Auth\LoginController;
 Route::get('/', function () {
     return view('main');
 });
@@ -14,10 +14,6 @@ Route::prefix('ldap')->group(function () {
     Route::post('/authenticate', [LdapController::class, 'authenticate']);
     Route::get('/search', [LdapController::class, 'search']);
 });
-Route::get('/test', [Ldap::class, 'exists']);
 
-Route::get('/login', );
+Route::get('/login',[LoginController::class, 'login']);
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
