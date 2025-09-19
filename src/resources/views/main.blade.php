@@ -16,7 +16,40 @@
                     <h1 class="h4 mb-0">Faberlic AI</h1>
                 </div>
                 <div class="col-auto">
-                    <span class="text-sm-end">Вход</span>
+                    <button type="button" class="btn text-sm-end text-white border-1" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Вход
+                    </button>
+                    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Вход</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row g-3 align-items-center">
+                                        <form action="{{route('login')}}">
+                                            <div class="col-auto">
+                                                <label for="password" class="col-form-label">Пароль</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <input type="password" id="password" class="form-control" aria-describedby="passwordHelpInline">
+                                            </div>
+                                            <div class="col-auto">
+                                                <label for="login" class="col-form-label">Логин</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <input type="text" id="login" class="form-control" aria-describedby="passwordHelpInline">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
