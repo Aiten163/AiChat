@@ -18,6 +18,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -59,7 +60,15 @@ class User extends Authenticatable
     public function hasAccess(string $permission, $cache = true): bool
     {
 
-        return $this->role === 'admin';
+        return $this->is_admin;
 
+    }
+    public function username()
+    {
+        return 'login';
+    }
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 }

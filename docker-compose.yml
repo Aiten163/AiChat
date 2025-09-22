@@ -14,7 +14,6 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
-      # УБРАТЬ монтирование entrypoint, т.к. он уже в образе
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
       - app-network
@@ -71,8 +70,8 @@ services:
     restart: unless-stopped
     environment:
       - PMA_HOST=${DB_HOST}
-      - PMA_USER=${DB_USER_NAME}
-      - PMA_PASSWORD=${DB_USER_PASSWORD}
+      - PMA_USER=${DB_USERNAME}
+      - PMA_PASSWORD=${DB_PASSWORD}
     ports:
       - "${IP_HOST}:8081:80"
     networks:

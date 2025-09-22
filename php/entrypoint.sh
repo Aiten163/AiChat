@@ -43,7 +43,6 @@ if [ -f "artisan" ]; then
     php artisan migrate --force
 fi
 
-# Меняем владельца файлов (на всякий случай)
 chown -R www:www /var/www/html
 
 echo "Starting PHP-FPM..."

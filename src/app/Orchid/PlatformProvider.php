@@ -34,21 +34,14 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
-            Menu::make('Нейросети')
-                ->icon('bs.door-closed')
-                ->route('platform.neural'),
+//            Menu::make('Нейросети')
+//                ->icon('bs.door-closed')
+//                ->route('platform.neural'),
 
             Menu::make(__('Users'))
                 ->icon('bs.people')
-                ->route('platform.systems.users')
-                ->permission('platform.systems.users')
-                ->title(__('Access Controls')),
+                ->route('platform.users.list')
 
-            Menu::make(__('Roles'))
-                ->icon('bs.shield')
-                ->route('platform.systems.roles')
-                ->permission('platform.systems.roles')
-                ->divider(),
         ];
     }
 
