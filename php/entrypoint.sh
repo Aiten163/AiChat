@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 cd /var/www/html
 
@@ -26,7 +27,7 @@ fi
 
 if [ -f "artisan" ]; then
     echo "Waiting for database to be ready..."
-    max_attempts=5
+    max_attempts=30
     attempt=1
 
     while [ $attempt -le $max_attempts ]; do
@@ -39,11 +40,15 @@ if [ -f "artisan" ]; then
         attempt=$((attempt + 1))
     done
 
+    if [ $attempt -gt $max_attempts ]; then
+        echo "Warning: Database connection failed after $max_attempts attempts"
+    fi
+
     echo "Running migrations..."
     php artisan migrate --force
 fi
 
-chown -R www:www /var/www/html
+chown -R www-data:www-data /var/www/html
 
-echo "Starting PHP-FPM..."
-exec php-fpm
+echo "Starting application..."
+exec "$@"

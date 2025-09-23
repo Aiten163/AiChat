@@ -23,9 +23,10 @@ RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Копируем entrypoint скрипт (ПРАВИЛЬНЫЙ путь)
+# Копируем entrypoint скрипт (УБЕРИТЕ ДОБАВЛЕНИЕ BOM!)
 COPY ./php/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+# УДАЛИТЕ ЭТУ СТРОКУ: RUN sed -i '1s/^/\xef\xbb\xbf/' /usr/local/bin/entrypoint.sh
 
 # Создаем группу и пользователя с переданными UID/GID
 ARG UID_HOST=1000

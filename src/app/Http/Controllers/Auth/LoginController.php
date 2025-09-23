@@ -52,10 +52,5 @@ class LoginController extends Controller
         return $this->sendFailedLoginResponse($request);
     }
 
-    // Опционально: кастомная логика после входа
-    protected function authenticated(Request $request, $user)
-    {
-        // Дополнительная логика после успешного входа
-        return redirect()->intended($this->redirectPath());
-    }
+
 }

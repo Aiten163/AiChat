@@ -2,7 +2,7 @@ services:
   php:
     build:
       context: .
-      dockerfile: php/Dockerfile  # путь относительно корня проекта
+      dockerfile: php/Dockerfile
       args:
         - UID_HOST=${UID_HOST:-1000}
         - GID_HOST=${GID_HOST:-1000}
@@ -36,13 +36,6 @@ services:
       - php
     networks:
       - app-network
-    command: >
-      sh -c "
-      envsubst '$$NGINX_HOST $$NGINX_PORT $$PHP_FPM_HOST $$PHP_FPM_PORT' 
-      < /etc/nginx/conf.d/default.conf.template 
-      > /etc/nginx/conf.d/default.conf 
-      && nginx -g 'daemon off;'
-      "
 
   mysql:
     image: mysql:8.0
@@ -67,43 +60,49 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
+    container_name: faberlicai-phpmyadmin
     restart: unless-stopped
     environment:
-      - PMA_HOST=${DB_HOST}
-      - PMA_USER=${DB_USERNAME}
+      - PMA_HOST=mysql
+      - PMA_USER=root
       - PMA_PASSWORD=${DB_PASSWORD}
     ports:
       - "${IP_HOST}:8081:80"
+    depends_on:
+      - mysql
     networks:
       - app-network
 
-  ad-server:
-    image: nowsci/samba-domain:latest
-    container_name: ad-server
-    hostname: DC1
+  samba-ad:
+    image: nowsci/samba-domain
+    container_name: faberlicai-samba-ad
+    hostname: dc1.faberlicai.local
     ports:
-      - "389:389"
-      - "636:636"
+      - "5389:53"           # DNS - нестандартный внешний порт
+      - "5389:53/udp"
+      - "88:88"
+      - "389:389"           # LDAP оставляем стандартным
+      - "4455:445"           # SMB оставляем стандартным
+      - "139:139"
+      - "464:464"
+      - "3268:3268"
     environment:
-      - DOMAIN=faberlic.ru
-      - DOMAINPASS=Admin123!
-      - SAMBA_DOMAIN_LOGONS=yes
-      - SAMBA_NETBIOS_NAME=DC1
-      - SAMBA_REALM=FABERLIC.RU
+      - DOMAIN=faberlicai.local
+      - DOMAINPASS=SecurePass123
       - HOSTIP=127.0.0.1
-      - SAMBA_NO_SHARES=yes
-      - SAMBA_LDAP_STRONG_AUTH=no
-      - SAMBA_LDAP_SSL=no
-      - SAMBA_SERVER_SIGNING=disabled
-      - SAMBA_NTLM_AUTH=yes
-      - SAMBA_LANMAN_AUTH=yes
+      - DNSFORWARDER=8.8.8.8
+      - INSECURE_DOMAIN=true
+    volumes:
+      - samba_data:/var/lib/samba
+      - samba_config:/etc/samba
+    restart: unless-stopped
     networks:
       - app-network
-    restart: unless-stopped
-    privileged: true
 
 volumes:
   mysql_data:
+  samba_data:
+  samba_config:
 
 networks:
   app-network:
