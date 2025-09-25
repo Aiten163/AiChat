@@ -26,6 +26,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Копируем entrypoint
 COPY ./php/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 
 # Создаем группу и пользователя
 ARG UID_HOST=1000
@@ -40,6 +41,8 @@ WORKDIR /var/www/html
 
 # Меняем владельца рабочей директории
 RUN chown -R www:www /var/www/html
+USER www
+
 
 # Устанавливаем точку входа
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

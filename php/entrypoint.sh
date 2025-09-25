@@ -49,6 +49,7 @@ if [ -f "artisan" ]; then
 fi
 
 chown -R www-data:www-data /var/www/html
+chown -R 775 /var/www/html
 
 echo "Starting application..."
 exec "$@"
