@@ -16,7 +16,7 @@ services:
       - ./src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     networks:
-      - app-network
+      - faberlicai-network
 
   nginx:
     build:
@@ -36,7 +36,7 @@ services:
     depends_on:
       - php
     networks:
-      - app-network
+      - faberlicai-network
 
   mysql:
     image: mysql:8.0
@@ -52,7 +52,7 @@ services:
     ports:
       - "${IP_HOST}:${DB_PORT}:3306"
     networks:
-      - app-network
+      - faberlicai-network
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}" ]
       interval: 5s
@@ -72,39 +72,12 @@ services:
     depends_on:
       - mysql
     networks:
-      - app-network
-
-  samba-ad:
-    image: nowsci/samba-domain
-    container_name: faberlicai-samba-ad
-    hostname: dc1.faberlicai.local
-    ports:
-      - "5389:53"
-      - "5389:53/udp"
-      - "88:88"
-      - "389:389"
-      - "4455:445"
-      - "139:139"
-      - "464:464"
-      - "3268:3268"
-    environment:
-      - DOMAIN=faberlicai.local
-      - DOMAINPASS=SecurePass123
-      - HOSTIP=127.0.0.1
-      - DNSFORWARDER=8.8.8.8
-      - INSECURE_DOMAIN=true
-    volumes:
-      - samba_data:/var/lib/samba
-      - samba_config:/etc/samba
-    restart: unless-stopped
-    networks:
-      - app-network
+      - faberlicai-network
 
 volumes:
   mysql_data:
-  samba_data:
-  samba_config:
 
 networks:
-  app-network:
+  faberlicai-network:
+    external: true
     driver: bridge

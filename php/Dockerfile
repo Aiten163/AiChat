@@ -31,9 +31,10 @@ RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 # Создаем группу и пользователя
 ARG UID_HOST=1000
 ARG GID_HOST=1000
-RUN groupadd -g ${GID_HOST} www && \
-    useradd -u ${UID_HOST} -g www -m www && \
-    usermod -a -G www www
+RUN groupadd -g ${GID_HOST} www || true && \
+    useradd -u ${UID_HOST} -g www -m www || true && \
+    usermod -a -G www www || true
+
 
 # Создаем рабочую директорию
 RUN mkdir -p /var/www/html
@@ -42,8 +43,6 @@ WORKDIR /var/www/html
 # Меняем владельца рабочей директории
 RUN chown -R www:www /var/www/html
 USER www
-
-
 # Устанавливаем точку входа
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EXPOSE 9000

@@ -13,18 +13,64 @@ function autoResize(textarea) {
 // Функция для отправки сообщения
 function sendMessage() {
     const textarea = document.querySelector('#text-request textarea');
-    const message = textarea.value; // Не используем trim() чтобы сохранить пробелы
+    const message = textarea.value;
     const model = document.querySelector('select[name="model"]').value;
 
-    if (message && message.trim() !== '') { // Проверяем что текст не только из пробелов
+    if (message && message.trim() !== '') {
         addMessage(message, 'user');
         textarea.value = '';
         textarea.style.height = 'auto';
 
-        // Имитация ответа AI
-        setTimeout(() => {
-            addMessage('Это пример ответа от AI модели...', 'ai');
-        }, 1000);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+            document.querySelector('input[name="_token"]')?.value || '';
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+
+        if (csrfToken) {
+            headers['X-CSRF-TOKEN'] = csrfToken;
+        }
+
+        fetch('/postRequest', {
+            method: 'POST',
+            body: JSON.stringify({
+                prompt: message,
+                model: model
+            }),
+            headers: headers
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Полученные данные:', data);
+
+                // Правильное извлечение текста ответа
+                let responseText = '';
+
+                if (typeof data === 'string') {
+                    responseText = data;
+                } else if (data.response) {
+                    responseText = data.response;
+                } else if (data.choices && data.choices[0] && data.choices[0].text) {
+                    responseText = data.choices[0].text;
+                } else if (data.message) {
+                    responseText = data.message;
+                } else {
+                    responseText = JSON.stringify(data);
+                }
+
+                addMessage(responseText, 'assistant');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Ошибка при отправке сообщения: ' + error.message, 'error');
+            });
     }
 }
 

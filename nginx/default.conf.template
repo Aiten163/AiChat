@@ -28,6 +28,15 @@ server {
 
     # Основное правило для PHP
     location / {
+        fastcgi_buffering off;
+        gzip off;
+        proxy_buffering off;
+
+        # Увеличиваем таймауты
+        fastcgi_read_timeout 300;
+
+        # Отключает буферизацию FastCGI
+        fastcgi_keep_conn on;
         try_files $uri $uri/ /index.php?$query_string;
     }
 
