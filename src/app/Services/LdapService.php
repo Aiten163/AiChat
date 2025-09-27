@@ -7,7 +7,7 @@ use LdapRecord\Models\ActiveDirectory\Group;
 
 class LdapService
 {
-    static function LdapService($username, $password, $groupName)
+    static function ldapLogin($username, $password, $groupName=null)
     {
         try {
             $connection = new Connection();
