@@ -14,23 +14,21 @@ class CreateAdminCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'admin:create {name} {password}';
+    protected $signature = 'admin:set {name}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Create admin user';
+    protected $description = 'Set admin user';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        User::create([
-        'name'=> $this->argument('name'),
-        'password' => Hash::make($this->argument('password')),
+        User::where('name', $this->argument('name'))->update([
         'is_admin' => true,
     ]);
     }

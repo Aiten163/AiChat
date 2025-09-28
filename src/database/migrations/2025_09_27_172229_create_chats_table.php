@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('neurals', function (Blueprint $table) {
+        Schema::create('chats', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 40);
-            $table->string('show_name', 40);
-            $table->unsignedTinyInteger('temperature')->default(50);
-            $table->string('description', 150);
-            $table->unsignedTinyInteger('countLastMessage')->default(5);
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('name',80)->nullable();
         });
     }
 
@@ -26,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('neurals');
+        Schema::dropIfExists('chats');
     }
 };

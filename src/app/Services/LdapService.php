@@ -7,10 +7,10 @@ use LdapRecord\Models\ActiveDirectory\Group;
 
 class LdapService
 {
-    static function ldapLogin($username, $password, $groupName=null)
+    static function ldapLogin($username, $password)
     {
         try {
-            $connection = new Connection();
+            $connection = new Connection(config('ldap.connections.default'));
             $connection->connect();
 
             $user = User::findByOrFail('samaccountname', $username);
@@ -18,7 +18,7 @@ class LdapService
                 return false;
             }
 
-            $group = Group::findByOrFail('cn', $groupName);
+            $group = Group::findByOrFail('cn', config('ldap.group'));
 
             return $group->members()->exists($user);
 

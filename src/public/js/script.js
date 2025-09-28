@@ -1,8 +1,6 @@
 function autoResize(textarea) {
-    // Сбрасываем высоту чтобы получить правильный scrollHeight
     textarea.style.height = 'auto';
 
-    // Устанавливаем высоту based on scrollHeight с максимальным ограничением
     const maxHeight = 150;
     const newHeight = Math.min(textarea.scrollHeight, maxHeight);
 
@@ -55,14 +53,8 @@ function sendMessage() {
 
                 if (typeof data === 'string') {
                     responseText = data;
-                } else if (data.response) {
-                    responseText = data.response;
-                } else if (data.choices && data.choices[0] && data.choices[0].text) {
-                    responseText = data.choices[0].text;
-                } else if (data.message) {
-                    responseText = data.message;
                 } else {
-                    responseText = JSON.stringify(data);
+                    responseText = 'Ошибка с типом данных'
                 }
 
                 addMessage(responseText, 'assistant');
@@ -82,8 +74,8 @@ function addMessage(text, type) {
 
     // Сохраняем форматирование текста
     const formattedText = text
-        .replace(/ /g, '&nbsp;') // Заменяем пробелы на неразрывные
-        .replace(/\n/g, '<br>') // Заменяем переносы строк на <br>
+        .replace(/ /g, '&nbsp;')
+        .replace(/\n/g, '<br>')
         .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;'); // Заменяем табы на 4 пробела
 
     messageDiv.innerHTML = formattedText;

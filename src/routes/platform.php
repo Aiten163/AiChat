@@ -9,10 +9,6 @@ use App\Orchid\Screens\UserListScreen;
 // Главная группа с middleware
 Route::middleware(['web', 'auth', 'platform'])->group(function () {
 
-    // Main
-    Route::screen('/main', PlatformScreen::class)
-        ->name('platform.main');
-
     Route::screen('/neurals', \App\Orchid\Screens\NeuralScreen::class)
         ->name('platform.neurals');
 

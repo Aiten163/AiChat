@@ -1,20 +1,40 @@
 <?php
 namespace App\Http\Controllers;
+use App\Models\Chat;
+use App\Models\ChatMessage;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OllamaController extends Controller {
 
     public function postRequest(Request $request)
     {
-        $response = Ollama::agent('You are a helpful assistant.')
-            ->prompt($request->prompt)
-            ->model('llama3:8b')
-            ->ask();
+        ChatMessage::create([
+            'chat_id' => 1,
+            'message' => $request->prompt,
+            'role' => 'user'
+        ]);
+        $lastMessages = Chat::find(1)->getLastMessages(5);
+        $conversation = $lastMessages->map(function ($message) {
+            return [
+                'role' => $message->role,
+                'content' => $message->message
+            ];
+        })->toArray();
+
+
+        $response = Ollama::model('llama3:8b')
+            ->chat($conversation);
+
+        ChatMessage::create([
+            'chat_id' => 1,
+            'message' => $response['message']['content'],
+            'role' => $response['message']['role']
+        ]);
 
         return response()->json([
-            'response' => $response['response'],
-            'status' => 'success'
+            'response' => $response['message']['content']
         ]);
     }
 

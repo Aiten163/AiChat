@@ -69,4 +69,13 @@ class User extends Authenticatable
     {
         return (bool) $this->is_admin;
     }
+    public function getAuthPassword()
+    {
+        return ''; // Возвращаем пустую строку
+    }
+
+    public function validateForPassportPasswordGrant($password)
+    {
+        return true;
+    }
 }
