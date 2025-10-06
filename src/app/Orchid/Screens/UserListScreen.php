@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\User;
+use App\Models\UserActivity;
 use App\Orchid\Layouts\UsersTable;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Actions\ModalToggle;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 use Orchid\Support\Facades\Layout;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\CheckBox;
+use Orchid\Screen\Actions\Link;
+use Orchid\Screen\Actions\Button;
 
 class UserListScreen extends Screen
 {
@@ -22,7 +25,9 @@ class UserListScreen extends Screen
     public function query(): iterable
     {
         return [
-            'users' => User::orderBy('id')->paginate(20)
+            'users' => User::with('activity')
+                ->orderBy('id')
+                ->paginate(20)
         ];
     }
 
@@ -43,7 +48,7 @@ class UserListScreen extends Screen
      */
     public function description(): ?string
     {
-        return 'Управление пользователями системы';
+        return 'Управление пользователями системы и отслеживание активности';
     }
 
     /**
@@ -59,6 +64,11 @@ class UserListScreen extends Screen
                 ->modal('createUser')
                 ->method('save')
                 ->modalTitle('Добавление пользователя'),
+
+            Button::make('Сбросить статистику')
+                ->icon('refresh')
+                ->method('resetStatistics')
+                ->confirm('Вы уверены, что хотите сбросить статистику сообщений для всех пользователей?'),
         ];
     }
 
@@ -142,8 +152,38 @@ class UserListScreen extends Screen
         $userId = $request->get('user_id');
 
         if ($userId) {
+            // Удаляем активность пользователя перед удалением самого пользователя
+            UserActivity::where('user_id', $userId)->delete();
             User::findOrFail($userId)->delete();
             Toast::info('Пользователь удален');
         }
+    }
+
+    /**
+     * Reset statistics for all users
+     */
+    public function resetStatistics(): void
+    {
+        UserActivity::query()->update([
+            'number_messages' => 0,
+            'lastMessage' => null
+        ]);
+
+        Toast::info('Статистика сообщений сброшена для всех пользователей');
+    }
+
+    /**
+     * Reset statistics for specific user
+     */
+    public function resetUserStatistics(Request $request): void
+    {
+        $userId = $request->get('user_id');
+
+        UserActivity::where('user_id', $userId)->update([
+            'number_messages' => 0,
+            'lastMessage' => null
+        ]);
+
+        Toast::info('Статистика сообщений сброшена для пользователя');
     }
 }

@@ -55,6 +55,10 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
     ];
+    public function activity()
+    {
+        return $this->hasOne(UserActivity::class);
+    }
     public function hasAccess(string $permission, $cache = true): bool
     {
 

@@ -7,50 +7,76 @@ use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\TD;
+
 class NeuralTable extends Table
 {
-    /**
-     * Data source.
-     *
-     * The name of the key to fetch it from the query.
-     * The results of which will be elements of the table.
-     *
-     * @var string
-     */
-    protected $target = 'neural';
+    protected $target = 'neurals';
 
-    /**
-     * Get the table cells to be displayed.
-     *
-     * @return TD[]
-     */
     protected function columns(): iterable
     {
         return [
-            TD::make('id', 'ID')->sort()->filter(TD::FILTER_NUMERIC),
-            TD::make('name', 'Название')->sort()->filter(),
-            TD::make('link', 'API')->sort()->filter(),
-            TD::make('action', '')->cantHide()->render(function (Neural $neural)
-            {
-                return ModalToggle::make("")
-                    ->modal('editneural')
-                    ->icon('pen')
-                    ->method('update')
-                    ->modalTitle('Редактирование'.$neural->id)
-                    ->asyncParameters([
-                            'neural' =>$neural->id
-                        ]
-                    );
-            }),
-            TD::make('action','')->cantHide()
-                ->render(function (Neural $neural)
-                {
-                    return Button::make("")
-                        ->icon('trash')
-                        ->method('delete',[
-                            'neural'=>$neural->id
+            TD::make('id', 'ID')
+                ->sort()
+                ->filter(TD::FILTER_NUMERIC)
+                ->width('100px'),
+
+            TD::make('name', 'Системное название')
+                ->sort()
+                ->filter()
+                ->width('200px'),
+
+            TD::make('show_name', 'Отображаемое название')
+                ->sort()
+                ->filter()
+                ->width('200px'),
+
+            TD::make('temperature', 'Температура')
+                ->sort()
+                ->filter(TD::FILTER_NUMERIC)
+                ->width('150px')
+                ->render(function (Neural $neural) {
+                    return $neural->temperature . '%';
+                }),
+
+            TD::make('countLastMessage', 'Сообщений в контексте')
+                ->sort()
+                ->filter(TD::FILTER_NUMERIC)
+                ->width('200px')
+                ->render(function (Neural $neural) {
+                    return $neural->countLastMessage;
+                }),
+
+            TD::make('description', 'Описание')
+                ->width('300px')
+                ->render(function (Neural $neural) {
+                    return \Illuminate\Support\Str::limit($neural->description, 50);
+                }),
+
+            TD::make('action', 'Действия')
+                ->alignRight()
+                ->width('100px')
+                ->render(function (Neural $neural) {
+                    return ModalToggle::make('')
+                        ->modal('editNeural')
+                        ->icon('pencil')
+                        ->method('update')
+                        ->modalTitle('Редактирование нейросети: ' . $neural->show_name)
+                        ->asyncParameters([
+                            'neural' => $neural->id
                         ]);
-                })
+                }),
+
+            TD::make('delete', '')
+                ->alignRight()
+                ->width('50px')
+                ->render(function (Neural $neural) {
+                    return Button::make('')
+                        ->icon('trash')
+                        ->method('delete', [
+                            'neural' => $neural->id
+                        ])
+                        ->confirm('Вы уверены, что хотите удалить эту нейросеть?');
+                }),
         ];
     }
 }

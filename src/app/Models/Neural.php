@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Where;
@@ -9,16 +10,18 @@ use Orchid\Filters\Types\Where;
 class Neural extends Model
 {
     use Filterable;
-    public $timestamps = false;
+    use HasFactory;
+
     protected $fillable = [
         'name',
-        'link',
-        'name_return',
+        'show_name',
+        'temperature',
+        'description',
+        'countLastMessage',
     ];
-    protected $allowedFilters=[
-        'id'=> Where::class,
-        'name'=> Where::class,
-        'link'=> Where::class,
-        'name_return'=> Where::class,
+
+    protected $casts = [
+        'temperature' => 'integer',
+        'countLastMessage' => 'integer',
     ];
 }

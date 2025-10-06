@@ -27,21 +27,49 @@ class UsersTable extends Table
         return [
             TD::make('id', 'ID')
                 ->sort()
-                ->width('100px')
+                ->width('80px')
                 ->filter(TD::FILTER_NUMERIC),
 
             TD::make('name', 'Имя')
                 ->sort()
-                ->filter(TD::FILTER_TEXT),
+                ->filter(TD::FILTER_TEXT)
+                ->width('200px'),
 
             TD::make('is_admin', 'Администратор')
                 ->sort()
+                ->width('150px')
                 ->render(function (User $user) {
-                    return $user->is_admin ?  'Да' : 'Нет';
+                    return $user->is_admin ? 'Да' : 'Нет';
                 }),
 
-            TD::make('action', '')
-                ->cantHide()
+            TD::make('activity.number_messages', 'Сообщения')
+                ->sort()
+                ->width('150px')
+                ->render(function (User $user) {
+                    return $user->activity ? $user->activity->number_messages : 0;
+                }),
+
+            TD::make('activity.lastLogin', 'Последний вход')
+                ->sort()
+                ->width('200px')
+                ->render(function (User $user) {
+                    return $user->activity && $user->activity->lastLogin
+                        ? $user->activity->lastLogin->format('d.m.Y H:i')
+                        : 'Никогда';
+                }),
+
+            TD::make('activity.lastMessage', 'Последнее сообщение')
+                ->sort()
+                ->width('200px')
+                ->render(function (User $user) {
+                    return $user->activity && $user->activity->lastMessage
+                        ? $user->activity->lastMessage->format('d.m.Y H:i')
+                        : 'Нет сообщений';
+                }),
+
+            TD::make('action', 'Действия')
+                ->alignRight()
+                ->width('120px')
                 ->render(function (User $user) {
                     return ModalToggle::make("")
                         ->modal('editUser')
@@ -53,8 +81,9 @@ class UsersTable extends Table
                         ]);
                 }),
 
-            TD::make('action', '')
-                ->cantHide()
+            TD::make('delete', '')
+                ->alignRight()
+                ->width('50px')
                 ->render(function (User $user) {
                     return Button::make("")
                         ->icon('trash')

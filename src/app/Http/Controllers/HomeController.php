@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChatMessage;
+use App\Models\Neural;
 use http\Message;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Chat;
@@ -13,8 +14,8 @@ class HomeController extends Controller
 {
     public function index() {
         $chats = Chat::where('user_id', Auth::id())->get();
-
-        return view('home', ['chats' => $chats]);
+        $neurals = Neural::all()->only(['show_name','name']);
+        return view('home', ['chats' => $chats, 'neurals' => $neurals]);
     }
     public function getHistoryChat(Request $request) {
 

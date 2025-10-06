@@ -131,9 +131,13 @@
                 <div id='input-model'>
                     <label>
                         <select name="model">
-                            <option value="chatgpt" class="">ChatGPT</option>
-                            <option value="copilot">Copilot</option>
-                            <option value="deepseek">DeepSeek</option>
+                            @if($neurals)
+                                <option>Нейросети не загружены</option>
+                            @endif
+
+                            @foreach($neurals as $neural)
+                                <option value="{{$neural['name']}}">{{$neural['show_name']}}</option>
+                            @endforeach
                         </select>
                     </label>
                 </div>
