@@ -24,6 +24,19 @@ class UserActivity extends Model
         'lastLogin' => 'datetime',
     ];
 
+    public static function updateActivity($user_id)
+    {
+        $activity = UserActivity::where('user_id', $user_id)>-get();
+        $activity->increment('number_messages');
+        $activity->lastMessage = now();
+        $activity->save();
+    }
+
+    public static function updateLastLogin($user_id)
+    {
+        $activity = UserActivity::where('user_id', $user_id)>-get();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

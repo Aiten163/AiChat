@@ -14,7 +14,7 @@ return [
     */
 
     'default' => env('LDAP_CONNECTION', 'default'),
-
+    'test_mode' => env('LDAP_TEST', false),
     /*
     |--------------------------------------------------------------------------
     | LDAP Connections

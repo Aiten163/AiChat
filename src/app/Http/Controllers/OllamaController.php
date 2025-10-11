@@ -2,6 +2,8 @@
 namespace App\Http\Controllers;
 use App\Models\Chat;
 use App\Models\ChatMessage;
+use App\Models\User;
+use App\Models\UserActivity;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +34,8 @@ class OllamaController extends Controller {
             'message' => $response['message']['content'],
             'role' => $response['message']['role']
         ]);
+
+        UserActivity::updateActivity(Auth::id());
 
         return response()->json([
             'response' => $response['message']['content']

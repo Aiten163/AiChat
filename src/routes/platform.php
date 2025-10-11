@@ -14,5 +14,7 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
 
     Route::screen('/users', UserListScreen::class)
         ->name('platform.users.list');
+    Route::screen('/messages', \App\Orchid\Screens\MessagesScreen::class)
+        ->name('platform.messages');
 
 });

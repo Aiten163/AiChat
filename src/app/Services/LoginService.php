@@ -3,6 +3,7 @@ namespace App\Services;
 
 
 use App\Models\User;
+use App\Models\UserActivity;
 use Illuminate\Support\Facades\Auth;
 
 class LoginService {
@@ -31,16 +32,19 @@ class LoginService {
             ]);
         }
 
-        Auth::login($user, true); // true = remember me
-        session()->save(); // Принудительно сохраняем сессию
+        Auth::login($user, true);
+        session()->save();
 
-
+        UserActivity::updateLastLogin(Auth::id());
         return Auth::check();
     }
 
     private function login_ldap():bool
     {
-        return true;
+        if (config('ldap.test_mode', false))
+        {
+            return true;
+        }
         return LdapService::ldapLogin($this->username, $this->password);
     }
 

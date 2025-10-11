@@ -38,9 +38,13 @@ class PlatformProvider extends OrchidServiceProvider
                 ->icon('bs.door-closed')
                 ->route('platform.neurals'),
 
-            Menu::make(__('Users'))
+            Menu::make(__('Пользователи'))
                 ->icon('bs.people')
-                ->route('platform.users.list')
+                ->route('platform.users.list'),
+
+            Menu::make(__('История сообщений'))
+                ->icon('bs.bubbles')
+                ->route('platform.messages')
 
         ];
     }
