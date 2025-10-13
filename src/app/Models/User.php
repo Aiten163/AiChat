@@ -55,7 +55,17 @@ class User extends Authenticatable
         'updated_at',
         'created_at',
     ];
-    public function activity()
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            $user->userActivity()->create();
+        });
+    }
+
+    public function userActivity()
     {
         return $this->hasOne(UserActivity::class);
     }
@@ -75,7 +85,7 @@ class User extends Authenticatable
     }
     public function getAuthPassword()
     {
-        return ''; // Возвращаем пустую строку
+        return '';
     }
 
     public function validateForPassportPasswordGrant($password)

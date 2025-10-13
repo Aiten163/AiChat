@@ -25,7 +25,7 @@ class UserListScreen extends Screen
     public function query(): iterable
     {
         return [
-            'users' => User::with('activity')
+            'users' => User::with('UserActivity')
                 ->orderBy('id')
                 ->paginate(20)
         ];

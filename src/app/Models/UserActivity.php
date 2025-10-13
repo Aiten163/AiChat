@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Notifications\Notifiable;
 
 class UserActivity extends Model
 {
     use HasFactory;
+    public $timestamps = false;
 
     protected $table = 'userActivity';
 
@@ -26,7 +28,7 @@ class UserActivity extends Model
 
     public static function updateActivity($user_id)
     {
-        $activity = UserActivity::where('user_id', $user_id)>-get();
+        $activity = UserActivity::where('user_id', $user_id)->get();
         $activity->increment('number_messages');
         $activity->lastMessage = now();
         $activity->save();
@@ -34,7 +36,7 @@ class UserActivity extends Model
 
     public static function updateLastLogin($user_id)
     {
-        $activity = UserActivity::where('user_id', $user_id)>-get();
+        UserActivity::where('user_id', $user_id)->update(['lastLogin' => now()]);
     }
 
     public function user(): BelongsTo

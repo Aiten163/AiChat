@@ -18,8 +18,6 @@ class HomeController extends Controller
         return view('home', ['chats' => $chats, 'neurals' => $neurals]);
     }
     public function getHistoryChat(Request $request) {
-
-        Log::info($request->chat_id);
         return ChatMessage::where('chat_id', $request->chat_id)->get()->only(['message', 'role']);
     }
 }

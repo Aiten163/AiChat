@@ -46,15 +46,15 @@ class UsersTable extends Table
                 ->sort()
                 ->width('150px')
                 ->render(function (User $user) {
-                    return $user->activity ? $user->activity->number_messages : 0;
+                    return $user->UserActivity ? $user->UserActivity->number_messages : 0;
                 }),
 
             TD::make('activity.lastLogin', 'Последний вход')
                 ->sort()
                 ->width('200px')
                 ->render(function (User $user) {
-                    return $user->activity && $user->activity->lastLogin
-                        ? $user->activity->lastLogin->format('d.m.Y H:i')
+                    return $user->UserActivity && $user->UserActivity->lastLogin
+                        ? $user->UserActivity->lastLogin->format('d.m.Y H:i')
                         : 'Никогда';
                 }),
 
@@ -62,8 +62,8 @@ class UsersTable extends Table
                 ->sort()
                 ->width('200px')
                 ->render(function (User $user) {
-                    return $user->activity && $user->activity->lastMessage
-                        ? $user->activity->lastMessage->format('d.m.Y H:i')
+                    return $user->UserActivity && $user->UserActivity->lastMessage
+                        ? $user->UserActivity->lastMessage->format('d.m.Y H:i')
                         : 'Нет сообщений';
                 }),
 

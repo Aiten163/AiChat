@@ -16,5 +16,11 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
         ->name('platform.users.list');
     Route::screen('/messages', \App\Orchid\Screens\MessagesScreen::class)
         ->name('platform.messages');
-
+    Route::screen('/analytics/messages', \App\Orchid\Screens\Analytics\MessagesChartScreen::class)
+        ->name('platform.analytics.messages')
+        ->breadcrumbs(function (\Tabuna\Breadcrumbs\Trail $trail) {
+            return $trail
+                ->parent('platform.index')
+                ->push('Статистика сообщений', route('platform.analytics.messages'));
+        });
 });

@@ -44,8 +44,14 @@ class PlatformProvider extends OrchidServiceProvider
 
             Menu::make(__('История сообщений'))
                 ->icon('bs.bubbles')
-                ->route('platform.messages')
-
+                ->route('platform.messages'),
+            Menu::make('Аналитика')
+                ->icon('chart')
+                ->list([
+                    Menu::make('Сообщения')
+                        ->icon('bubbles')
+                        ->route('platform.analytics.messages'),
+                ])
         ];
     }
 
