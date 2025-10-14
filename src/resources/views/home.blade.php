@@ -131,7 +131,7 @@
                 <div id='input-model'>
                     <label>
                         <select name="model">
-                            @if($neurals)
+                            @if(!$neurals->isNotEmpty())
                                 <option>Нейросети не загружены</option>
                             @endif
 

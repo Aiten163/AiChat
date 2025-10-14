@@ -14,7 +14,7 @@ class HomeController extends Controller
 {
     public function index() {
         $chats = Chat::where('user_id', Auth::id())->get();
-        $neurals = Neural::all()->only(['show_name','name']);
+        $neurals = Neural::get(['show_name', 'name']);//->only(['show_name','name']);
         return view('home', ['chats' => $chats, 'neurals' => $neurals]);
     }
     public function getHistoryChat(Request $request) {

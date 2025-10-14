@@ -82,9 +82,6 @@ class MessagesChartScreen extends Screen
             Layout::columns([
                 \App\Orchid\Layouts\Analytics\MessagesLineChart::make('charts', 'График сообщений')
                     ->description('Динамика сообщений по дням'),
-
-                \App\Orchid\Layouts\Analytics\MessagesBarChart::make('charts', 'Сообщения по дням')
-                    ->description('Столбчатая диаграмма сообщений'),
             ]),
         ];
     }

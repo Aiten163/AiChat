@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name', 40);
             $table->string('show_name', 40);
             $table->unsignedTinyInteger('temperature')->default(50);
-            $table->string('description', 150);
+            $table->string('description', 150)->nullable();
             $table->unsignedTinyInteger('countLastMessage')->default(5);
         });
     }

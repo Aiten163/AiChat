@@ -157,9 +157,9 @@ class NeuralScreen extends Screen
         $request->validate([
             'name' => 'required|string|max:40|unique:neurals,name',
             'show_name' => 'required|string|max:40',
-            'temperature' => 'required|integer|min:0|max:100',
-            'countLastMessage' => 'required|integer|min:1|max:20',
-            'description' => 'required|string|max:150',
+            'temperature' => 'integer|min:0|max:100',
+            'countLastMessage' => 'integer|min:1',
+            'description' => 'string|nullable|max:150',
         ]);
 
         Neural::create($request->all());

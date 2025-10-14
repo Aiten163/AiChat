@@ -18,22 +18,31 @@ class NeuralTable extends Table
             TD::make('id', 'ID')
                 ->sort()
                 ->filter(TD::FILTER_NUMERIC)
-                ->width('100px'),
+                ->width('50px')
+                ->render(function (Neural $neural) {
+                    return $neural->id;
+                }),
 
             TD::make('name', 'Системное название')
                 ->sort()
                 ->filter()
-                ->width('200px'),
+                ->width('150px')
+                ->render(function (Neural $neural) {
+                    return $neural->name;
+                }),
 
             TD::make('show_name', 'Отображаемое название')
                 ->sort()
                 ->filter()
-                ->width('200px'),
+                ->width('150px')
+                ->render(function (Neural $neural) {
+                    return $neural->show_name;
+                }),
 
             TD::make('temperature', 'Температура')
                 ->sort()
                 ->filter(TD::FILTER_NUMERIC)
-                ->width('150px')
+                ->width('50px')
                 ->render(function (Neural $neural) {
                     return $neural->temperature . '%';
                 }),
@@ -41,20 +50,20 @@ class NeuralTable extends Table
             TD::make('countLastMessage', 'Сообщений в контексте')
                 ->sort()
                 ->filter(TD::FILTER_NUMERIC)
-                ->width('200px')
+                ->width('100px')
                 ->render(function (Neural $neural) {
                     return $neural->countLastMessage;
                 }),
 
             TD::make('description', 'Описание')
-                ->width('300px')
+                ->width('200px')
                 ->render(function (Neural $neural) {
                     return \Illuminate\Support\Str::limit($neural->description, 50);
                 }),
 
             TD::make('action', 'Действия')
                 ->alignRight()
-                ->width('100px')
+                ->width('50px')
                 ->render(function (Neural $neural) {
                     return ModalToggle::make('')
                         ->modal('editNeural')
