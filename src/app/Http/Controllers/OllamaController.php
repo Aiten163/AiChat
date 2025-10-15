@@ -12,11 +12,22 @@ class OllamaController extends Controller {
 
     public function postRequest(Request $request)
     {
-        ChatMessage::create([
-            'chat_id' => 1,
-            'message' => $request->prompt,
-            'role' => 'user'
-        ]);
+        # TODO: Разбить контроллер на сервис и добавить валидатор, допилить код с логикой чатов и на фронте сохранять нужные параметры для этого контроллера
+        $request->chatId;
+        $request->prompt;
+        $request->model;
+
+
+        if(!$request->chatId) {
+            ChatMessage::create([
+                'chat_id' => 1,
+                'message' => $request->prompt,
+                'role' => 'user'
+            ]);
+        } else {
+
+        }
+
         $lastMessages = Chat::find(1)->getLastMessages(5);
         $conversation = $lastMessages->map(function ($message) {
             return [

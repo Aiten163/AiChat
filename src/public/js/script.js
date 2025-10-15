@@ -48,7 +48,6 @@ function sendMessage() {
             .then(data => {
                 console.log('Полученные данные:', data);
 
-                // Правильное извлечение текста ответа
                 let responseText = '';
 
                 if (typeof data === 'string') {
@@ -66,7 +65,6 @@ function sendMessage() {
     }
 }
 
-// Функция для добавления сообщения в историю
 function addMessage(text, type) {
     const historyContainer = document.getElementById('history-container');
     const messageDiv = document.createElement('div');
@@ -76,7 +74,7 @@ function addMessage(text, type) {
     const formattedText = text
         .replace(/ /g, '&nbsp;')
         .replace(/\n/g, '<br>')
-        .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;'); // Заменяем табы на 4 пробела
+        .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
 
     messageDiv.innerHTML = formattedText;
 

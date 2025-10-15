@@ -4,6 +4,7 @@ namespace App\Orchid\Screens;
 
 use App\Models\Neural;
 use App\Orchid\Layouts\Neural\NeuralTable;
+use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Fields\Input;
@@ -48,9 +49,12 @@ class NeuralScreen extends Screen
             NeuralTable::class,
 
             Layout::modal('createNeural', Layout::rows([
-                Input::make('name')
+                Select::make('name')
+                    ->options(collect(Ollama::models()['models'])
+                        ->mapWithKeys(fn($model) => [$model['name'] => $model['name']])
+                        ->toArray()
+                    )
                     ->title('Системное название')
-                    ->placeholder('Например: gpt-4')
                     ->help('Уникальное название для внутреннего использования')
                     ->required(),
 
