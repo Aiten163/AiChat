@@ -88,6 +88,16 @@
             transform: translateY(-2px);
         }
 
+        .btn-clear {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
         button:disabled {
             background: #bdc3c7;
             cursor: not-allowed;
@@ -117,32 +127,20 @@
             font-size: 16px;
             line-height: 1.6;
             margin-bottom: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .info-card {
-            background: white;
+        .encoded-text {
+            background: #2c3e50;
+            color: #e67e22;
             padding: 15px;
             border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .info-value {
-            font-size: 1.5em;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            margin-bottom: 20px;
             font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .info-label {
-            color: #7f8c8d;
-            font-size: 0.9em;
+            font-size: 14px;
         }
 
         .codes-table {
@@ -212,6 +210,15 @@
             display: none;
         }
 
+        .success {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
         .no-data {
             text-align: center;
             padding: 40px;
@@ -239,11 +246,17 @@
             border: 2px solid #3498db;
             border-radius: 8px;
             transition: all 0.3s;
+            display: inline-block;
         }
 
         .nav-link:hover {
             background: #3498db;
             color: white;
+        }
+
+        .special-char {
+            color: #e74c3c;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -262,14 +275,19 @@
             <button class="btn-encode-page" onclick="window.location.href='{{ route('encode') }}'">
                 ← Перейти к кодированию
             </button>
+            <button class="btn-clear" onclick="clearData()">
+                Очистить данные
+            </button>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Загрузка и декодирование данных...</p>
+            <p id="loadingText">Загрузка данных...</p>
         </div>
 
         <div id="error" class="error"></div>
+
+        <div id="success" class="success"></div>
 
         <div id="noData" class="no-data">
             <h3>📭 Данные не найдены</h3>
@@ -282,24 +300,8 @@
         <div id="resultSection" class="result-section">
             <h3>✅ Текст успешно декодирован!</h3>
 
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="info-value" id="originalLength">0</div>
-                    <div class="info-label">Символов в тексте</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-value" id="encodedLength">0</div>
-                    <div class="info-label">Бит в закодированном тексте</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-value" id="uniqueChars">0</div>
-                    <div class="info-label">Уникальных символов</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-value" id="timestamp">-</div>
-                    <div class="info-label">Время кодирования</div>
-                </div>
-            </div>
+            <h4>Закодированный текст:</h4>
+            <div id="encodedText" class="encoded-text"></div>
 
             <h4>Исходный текст:</h4>
             <div id="decodedText" class="decoded-text"></div>
@@ -310,7 +312,6 @@
                 <tr>
                     <th>Символ</th>
                     <th>Код Фано</th>
-                    <th>Длина кода</th>
                 </tr>
                 </thead>
                 <tbody id="codesTableBody">
@@ -326,26 +327,44 @@
 </div>
 
 <script>
+    // CSRF токен для AJAX запросов
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
     async function decodeText() {
         const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
         const error = document.getElementById('error');
+        const success = document.getElementById('success');
         const resultSection = document.getElementById('resultSection');
         const noData = document.getElementById('noData');
 
         // Сброс предыдущих результатов
         error.style.display = 'none';
+        success.style.display = 'none';
         resultSection.style.display = 'none';
         noData.style.display = 'none';
         loading.style.display = 'block';
+        loadingText.textContent = 'Загрузка данных...';
 
         try {
-            const response = await fetch('/fano/encoded-data');
+            const response = await fetch('{{ route('fano.encoded-data') }}', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json; charset=utf-8'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
 
             if (data.success) {
                 displayDecodedResults(data.data);
+                showSuccess('Текст успешно декодирован!');
             } else {
-                if (data.error === 'Файл с закодированными данными не найден') {
+                if (data.error && data.error.includes('не найден')) {
                     noData.style.display = 'block';
                 } else {
                     showError(data.error || 'Произошла ошибка при загрузке данных');
@@ -358,25 +377,57 @@
         }
     }
 
+    async function clearData() {
+        if (!confirm('Вы уверены, что хотите удалить все закодированные данные?')) {
+            return;
+        }
+
+        const loading = document.getElementById('loading');
+        const loadingText = document.getElementById('loadingText');
+        const error = document.getElementById('error');
+        const success = document.getElementById('success');
+
+        loading.style.display = 'block';
+        loadingText.textContent = 'Удаление данных...';
+        error.style.display = 'none';
+        success.style.display = 'none';
+
+        try {
+            const response = await fetch('{{ route('fano.clear') }}', {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showSuccess('Данные успешно удалены!');
+                document.getElementById('resultSection').style.display = 'none';
+                document.getElementById('noData').style.display = 'block';
+            } else {
+                showError(data.error || 'Ошибка при удалении данных');
+            }
+        } catch (err) {
+            showError('Ошибка сети: ' + err.message);
+        } finally {
+            loading.style.display = 'none';
+        }
+    }
+
     function displayDecodedResults(data) {
         const resultSection = document.getElementById('resultSection');
         const decodedText = document.getElementById('decodedText');
+        const encodedText = document.getElementById('encodedText');
         const codesTableBody = document.getElementById('codesTableBody');
-        const originalLength = document.getElementById('originalLength');
-        const encodedLength = document.getElementById('encodedLength');
-        const uniqueChars = document.getElementById('uniqueChars');
-        const timestamp = document.getElementById('timestamp');
 
-        // Декодируем текст
+        // Декодируем текст на клиенте
         const decoded = decodeFano(data.encoded_text, data.codes);
 
-        // Обновляем информацию
-        originalLength.textContent = decoded.length;
-        encodedLength.textContent = data.encoded_text.length;
-        uniqueChars.textContent = Object.keys(data.codes).length;
-        timestamp.textContent = new Date(data.timestamp).toLocaleString();
-
-        // Показываем декодированный текст
+        // Показываем закодированный и декодированный текст
+        encodedText.textContent = data.encoded_text;
         decodedText.textContent = decoded;
 
         // Заполняем таблицу кодов
@@ -386,18 +437,26 @@
 
             const charCell = document.createElement('td');
             charCell.className = 'char-cell';
-            charCell.textContent = char === ' ' ? '[ПРОБЕЛ]' : char;
+
+            // Отображаем специальные символы
+            if (char === ' ') {
+                charCell.innerHTML = '<span class="special-char">[ПРОБЕЛ]</span>';
+            } else if (char === '\n') {
+                charCell.innerHTML = '<span class="special-char">[ПЕРЕНОС]</span>';
+            } else if (char === '\t') {
+                charCell.innerHTML = '<span class="special-char">[ТАБ]</span>';
+            } else if (char === '\r') {
+                charCell.innerHTML = '<span class="special-char">[ВОЗВРАТ]</span>';
+            } else {
+                charCell.textContent = char;
+            }
 
             const codeCell = document.createElement('td');
             codeCell.className = 'code-cell';
             codeCell.textContent = code;
 
-            const lengthCell = document.createElement('td');
-            lengthCell.textContent = code.length + ' бит';
-
             row.appendChild(charCell);
             row.appendChild(codeCell);
-            row.appendChild(lengthCell);
             codesTableBody.appendChild(row);
         }
 
@@ -435,9 +494,15 @@
         error.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // Автоматически пытаемся загрузить данные при открытии страницы
+    function showSuccess(message) {
+        const success = document.getElementById('success');
+        success.textContent = message;
+        success.style.display = 'block';
+    }
+
+    // Показываем сообщение о необходимости нажать кнопку
     document.addEventListener('DOMContentLoaded', function() {
-        decodeText();
+        document.getElementById('noData').style.display = 'block';
     });
 </script>
 </body>

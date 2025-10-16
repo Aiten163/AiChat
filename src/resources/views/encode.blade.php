@@ -161,32 +161,6 @@
             line-height: 1.4;
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-
         .codes-table {
             width: 100%;
             border-collapse: collapse;
@@ -334,25 +308,6 @@
         <div id="resultSection" class="result-section">
             <h3>✅ Текст успешно закодирован!</h3>
 
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="compressionRatio">0%</div>
-                    <div class="stat-label">Коэффициент сжатия</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="originalLength">0</div>
-                    <div class="stat-label">Исходных символов</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="encodedLength">0</div>
-                    <div class="stat-label">Бит после кодирования</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="uniqueChars">0</div>
-                    <div class="stat-label">Уникальных символов</div>
-                </div>
-            </div>
-
             <h4>Закодированный текст:</h4>
             <div id="encodedText" class="encoded-text"></div>
 
@@ -362,7 +317,6 @@
                 <tr>
                     <th>Символ</th>
                     <th>Код Фано</th>
-                    <th>Длина кода</th>
                 </tr>
                 </thead>
                 <tbody id="codesTableBody">
@@ -420,7 +374,7 @@
             const data = await response.json();
 
             if (data.success) {
-                displayResults(data, inputText);
+                displayResults(data);
                 showSuccess('Текст успешно закодирован!');
             } else {
                 showError(data.error || 'Произошла ошибка при кодировании');
@@ -473,20 +427,10 @@
         }
     }
 
-    function displayResults(data, originalText) {
+    function displayResults(data) {
         const resultSection = document.getElementById('resultSection');
         const encodedText = document.getElementById('encodedText');
         const codesTableBody = document.getElementById('codesTableBody');
-        const compressionRatio = document.getElementById('compressionRatio');
-        const originalLength = document.getElementById('originalLength');
-        const encodedLength = document.getElementById('encodedLength');
-        const uniqueChars = document.getElementById('uniqueChars');
-
-        // Обновляем статистику
-        compressionRatio.textContent = data.compression_ratio + '%';
-        originalLength.textContent = data.stats.original_length;
-        encodedLength.textContent = data.stats.encoded_length;
-        uniqueChars.textContent = data.stats.unique_chars;
 
         // Показываем закодированный текст
         encodedText.textContent = data.encoded_text;
@@ -516,12 +460,8 @@
             codeCell.className = 'code-cell';
             codeCell.textContent = code;
 
-            const lengthCell = document.createElement('td');
-            lengthCell.textContent = code.length + ' бит';
-
             row.appendChild(charCell);
             row.appendChild(codeCell);
-            row.appendChild(lengthCell);
             codesTableBody.appendChild(row);
         }
 

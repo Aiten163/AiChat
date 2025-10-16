@@ -31,7 +31,7 @@ class FanoController extends Controller
     {
         // Валидация входных данных
         $request->validate([
-            'text' => 'required|string|max:10000'
+            'text' => 'required|string'
         ]);
 
         $text = $request->input('text');
@@ -43,12 +43,11 @@ class FanoController extends Controller
             $fanoData = $this->buildFanoCodes($text);
             $encodedText = $this->encodeText($text, $fanoData['codes']);
 
-            // Подготавливаем данные для сохранения
+            // Подготавливаем данные для сохранения (только самое необходимое)
             $fileData = [
-                'original_text' => $text,
                 'encoded_text' => $encodedText,
                 'codes' => $fanoData['codes'],
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ];
 
             // Сохраняем в файл (перезаписываем если существует)
@@ -59,7 +58,7 @@ class FanoController extends Controller
             return response()->json([
                 'success' => true,
                 'encoded_text' => $encodedText,
-                'codes' => $fanoData['codes']
+                'codes' => $fanoData['codes'],
             ], 200, [], JSON_UNESCAPED_UNICODE);
 
         } catch (\Exception $e) {
