@@ -9,9 +9,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OllamaController extends Controller {
+    private int $user_id;
+
+    public function __construct()
+    {
+         $this->user_id=Auth::id();
+    }
 
     public function postRequest(Request $request)
     {
+        $request->validate([
+            'chatId' => 'integer|nullable',
+            'prompt' => 'required|string|min:1|max:15000',
+            'model' => 'required|string|min:1|max:50',
+        ]);
         # TODO: Разбить контроллер на сервис и добавить валидатор, допилить код с логикой чатов и на фронте сохранять нужные параметры для этого контроллера
         $request->chatId;
         $request->prompt;
@@ -19,15 +30,17 @@ class OllamaController extends Controller {
 
 
         if(!$request->chatId) {
-            ChatMessage::create([
-                'chat_id' => 1,
-                'message' => $request->prompt,
-                'role' => 'user'
+            Chat::create([
+                'user_id' => $this->user_id,
             ]);
         } else {
 
         }
-
+        ChatMessage::create([
+            'chat_id' => 1,
+            'message' => $request->prompt,
+            'role' => 'user'
+        ]);
         $lastMessages = Chat::find(1)->getLastMessages(5);
         $conversation = $lastMessages->map(function ($message) {
             return [
