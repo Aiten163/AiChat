@@ -2,7 +2,8 @@
 
 namespace App\Orchid\Screens\Analytics;
 
-use App\Models\UserActivity;
+use App\Models\ChatMessage;
+use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Screen;
 use Orchid\Support\Facades\Layout;
 use Illuminate\Http\Request;
@@ -91,13 +92,12 @@ class MessagesChartScreen extends Screen
      */
     private function getChartData(string $startDate, string $endDate): array
     {
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
 
-        // Получаем данные из базы
-        $data = UserActivity::whereNotNull('lastMessage')
-            ->whereBetween('lastMessage', [$start, $end])
-            ->selectRaw('DATE(lastMessage) as date, SUM(number_messages) as total_messages')
+        // Получаем данные из таблицы chatMessages
+        $data = ChatMessage::whereBetween('created_at', [$start, $end])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total_messages')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
@@ -127,18 +127,27 @@ class MessagesChartScreen extends Screen
     /**
      * Статистика за период
      */
+    /**
+     * Статистика за период
+     */
     private function getStats(string $startDate, string $endDate): array
     {
-        $start = Carbon::parse($startDate);
-        $end = Carbon::parse($endDate);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
 
-        $totalMessages = UserActivity::whereBetween('lastMessage', [$start, $end])
-            ->sum('number_messages');
+        // Общее количество сообщений
+        $totalMessages = ChatMessage::whereBetween('created_at', [$start, $end])->count();
 
-        $activeUsers = UserActivity::whereBetween('lastMessage', [$start, $end])
-            ->distinct('user_id')
-            ->count('user_id');
+        // Количество уникальных пользователей (через связь с чатами)
+        $activeUsers = ChatMessage::whereBetween('created_at', [$start, $end])
+            ->whereHas('chat', function($query) {
+                $query->whereNotNull('user_id');
+            })
+            ->join('chats', 'chatMessages.chat_id', '=', 'chats.id')
+            ->distinct('chats.user_id')
+            ->count('chats.user_id');
 
+        // Среднее количество сообщений на пользователя
         $avgMessages = $activeUsers > 0 ? $totalMessages / $activeUsers : 0;
 
         return [

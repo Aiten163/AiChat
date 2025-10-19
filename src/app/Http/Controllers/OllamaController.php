@@ -4,66 +4,50 @@ use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\User;
 use App\Models\UserActivity;
+use App\Services\ChatService;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class OllamaController extends Controller {
-    private int $user_id;
+    private ?int $user_id = null;
 
     public function __construct()
     {
-         $this->user_id=Auth::id();
+        $this->middleware(function ($request, $next) {
+            $this->user_id = Auth::id();
+            return $next($request);
+        });
     }
 
     public function postRequest(Request $request)
     {
-        $request->validate([
-            'chatId' => 'integer|nullable',
-            'prompt' => 'required|string|min:1|max:15000',
-            'model' => 'required|string|min:1|max:50',
-        ]);
-        # TODO: Разбить контроллер на сервис и добавить валидатор, допилить код с логикой чатов и на фронте сохранять нужные параметры для этого контроллера
-        $request->chatId;
-        $request->prompt;
-        $request->model;
+        try {
+            $prompt = $request->input('prompt');
+            $model = $request->input('model');
+            $chatId = $request->input('chatID');
+            $userId = auth()->id();
 
+            // Создаем сервис
+            $chatService = new ChatService($chatId, $prompt, $model, $userId);
 
-        if(!$request->chatId) {
-            Chat::create([
-                'user_id' => $this->user_id,
+            // Получаем ответ
+            $result = $chatService->getResponse();
+
+            return response()->json([
+                'response' => $result['response'],
+                'chat_id' => $result['chat_id'],
+                'is_new_chat' => $result['is_new_chat'],
+                'chat_name' => $result['chat_name']
             ]);
-        } else {
 
+        } catch (\Exception $e) {
+            Log::error('Chat service error: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Ошибка при обработке запроса',
+                'chat_id' => $chatId // Возвращаем исходный chat_id при ошибке
+            ], 500);
         }
-        ChatMessage::create([
-            'chat_id' => 1,
-            'message' => $request->prompt,
-            'role' => 'user'
-        ]);
-        $lastMessages = Chat::find(1)->getLastMessages(5);
-        $conversation = $lastMessages->map(function ($message) {
-            return [
-                'role' => $message->role,
-                'content' => $message->message
-            ];
-        })->toArray();
-
-
-        $response = Ollama::model('llama3:8b')
-            ->chat($conversation);
-
-        ChatMessage::create([
-            'chat_id' => 1,
-            'message' => $response['message']['content'],
-            'role' => $response['message']['role']
-        ]);
-
-        UserActivity::updateActivity(Auth::id());
-
-        return response()->json([
-            'response' => $response['message']['content']
-        ]);
     }
-
 }

@@ -25,7 +25,10 @@ class MessagesTable extends Table
         return [
             TD::make('id', 'ID')
                 ->sort()
-                ->filter(TD::FILTER_TEXT),
+                ->filter(TD::FILTER_TEXT)
+                ->render(function (ChatMessage $message) {
+                    return $message->id;
+                }),
 
             TD::make('message', 'Текст сообщения')
                 ->render(function (ChatMessage $message) {
@@ -34,14 +37,14 @@ class MessagesTable extends Table
 
             TD::make('chat_id', 'Чат')
                 ->render(function (ChatMessage $message) {
-                    return "ID: {$message->chat_id} - {$message->chat->name}";
+                    return "{$message->chat_id} - {$message->chat->name}";
                 })
                 ->sort(),
 
             TD::make('user_id', 'Отправитель')
                 ->render(function (ChatMessage $message) {
                     $user = $message->chat->user;
-                    return $user->name . ' (' . $user->email . ')';
+                    return $user->name;
                 }),
 
             TD::make('role', 'Роль')
@@ -52,19 +55,7 @@ class MessagesTable extends Table
                     'system' => 'Система',
                 ])
                 ->render(function (ChatMessage $message) {
-                    $roleLabels = [
-                        'user' => 'Пользователь',
-                        'assistant' => 'Ассистент',
-                        'system' => 'Система',
-                    ];
-
-                    $badgeColor = [
-                        'user' => 'info',
-                        'assistant' => 'success',
-                        'system' => 'warning',
-                    ];
-
-                    return "<span class='badge badge-{$badgeColor[$message->role]}'>{$roleLabels[$message->role]}</span>";
+                    return \Illuminate\Support\Str::limit($message->role, 100);
                 }),
 
             TD::make('created_at', 'Дата и время')
@@ -73,12 +64,12 @@ class MessagesTable extends Table
                     return $message->created_at->format('d.m.Y H:i:s');
                 }),
 
-            TD::make('actions', 'Действия')
-                ->render(function (ChatMessage $message) {
-                    return Link::make('Просмотреть')
-                        ->route('platform.chat.message', $message->id)
-                        ->icon('eye');
-                }),
+//            TD::make('actions', 'Действия')
+//                ->render(function (ChatMessage $message) {
+//                    return Link::make('Просмотреть')
+//                        ->route('platform.messages', $message->id)
+//                        ->icon('eye');
+//                }),
         ];
     }
 }

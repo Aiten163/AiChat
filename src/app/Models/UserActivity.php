@@ -28,7 +28,7 @@ class UserActivity extends Model
 
     public static function updateActivity($user_id)
     {
-        $activity = UserActivity::where('user_id', $user_id)->get();
+        $activity = UserActivity::where('user_id', $user_id)->first();
         $activity->increment('number_messages');
         $activity->lastMessage = now();
         $activity->save();
