@@ -6,13 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
+use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Like;
+use Orchid\Filters\Types\Where;
+use Orchid\Filters\Types\WhereDateStartEnd;
 
 class UserActivity extends Model
 {
-    use HasFactory;
+    use Filterable;
     public $timestamps = false;
 
     protected $table = 'userActivity';
+
+    protected $hidden = [
+        'remember_token',
+    ];
 
     protected $fillable = [
         'user_id',
@@ -25,7 +33,26 @@ class UserActivity extends Model
         'lastMessage' => 'datetime',
         'lastLogin' => 'datetime',
     ];
+    protected $allowedFilters = [
+        'id' => Where::class,
+        'name' => Like::class,
+        'is_admin' => Where::class,
+        'number_messages' => Where::class,
+        'lastLogin' => WhereDateStartEnd::class,
+        'lastMessage' => WhereDateStartEnd::class,
+    ];
 
+    /**
+     * Available sorts for the model
+     */
+    protected $allowedSorts = [
+        'id',
+        'name',
+        'is_admin',
+        'number_messages',
+        'lastLogin',
+        'lastMessage',
+    ];
     public static function updateActivity($user_id)
     {
         $activity = UserActivity::where('user_id', $user_id)->first();

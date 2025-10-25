@@ -16,7 +16,6 @@ export class InputHandler {
         if (this.textarea) {
             this.textarea.addEventListener('input', () => this.autoResize());
             this.textarea.addEventListener('keydown', (e) => this.handleKeyDown(e));
-            this.textarea.addEventListener('keyup', (e) => this.handleKeyUp(e));
         }
 
         if (this.sendButton) {
@@ -28,7 +27,7 @@ export class InputHandler {
         if (!this.textarea) return;
 
         this.textarea.style.height = 'auto';
-        const maxHeight = 150;
+        const maxHeight = 200;
         const newHeight = Math.min(this.textarea.scrollHeight, maxHeight);
 
         this.textarea.style.height = newHeight + 'px';
@@ -39,45 +38,14 @@ export class InputHandler {
         // Отправка по Enter (без Shift)
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-
-            // Если сообщение не пустое, отправляем
-            if (this.textarea.value.trim()) {
-                this.handleSendMessage();
-            }
+            this.handleSendMessage();
         }
 
-        // Комбинация Ctrl+Enter или Cmd+Enter для новой строки
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.insertNewLine();
+        // Новая строка по Shift+Enter
+        if (e.key === 'Enter' && e.shiftKey) {
+            // Разрешаем стандартное поведение - вставка новой строки
+            return;
         }
-    }
-
-    handleKeyUp(e) {
-        // Автоматическое изменение высоты при вводе
-        if (e.key !== 'Enter' || e.shiftKey) {
-            this.autoResize();
-        }
-    }
-
-    insertNewLine() {
-        if (!this.textarea) return;
-
-        const start = this.textarea.selectionStart;
-        const end = this.textarea.selectionEnd;
-        const value = this.textarea.value;
-
-        // Вставляем новую строку в позицию курсора
-        this.textarea.value = value.substring(0, start) + '\n' + value.substring(end);
-
-        // Устанавливаем курсор после новой строки
-        this.textarea.selectionStart = this.textarea.selectionEnd = start + 1;
-
-        // Обновляем высоту
-        this.autoResize();
-
-        // Фокусируем обратно на textarea
-        this.textarea.focus();
     }
 
     async handleSendMessage() {
@@ -87,37 +55,50 @@ export class InputHandler {
         const model = this.modelSelect ? this.modelSelect.value : 'default';
 
         if (message) {
-            // Блокируем кнопку отправки
-            this.setSendButtonState(true);
+            // Блокируем кнопку отправки и textarea
+            this.setLoadingState(true);
 
             try {
                 await this.sendMessageToServer(message, model);
                 this.clearInput();
             } catch (error) {
                 console.error('Error sending message:', error);
+                this.chatManager.showError('Ошибка при отправке сообщения: ' + error.message);
             } finally {
-                // Разблокируем кнопку отправки
-                this.setSendButtonState(false);
+                // Разблокируем кнопку отправки и textarea
+                this.setLoadingState(false);
             }
         }
     }
 
-    setSendButtonState(isSending) {
+    setLoadingState(isLoading) {
         if (this.sendButton) {
-            if (isSending) {
-                this.sendButton.disabled = true;
+            this.sendButton.disabled = isLoading;
+            if (isLoading) {
                 this.sendButton.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
                 this.sendButton.style.backgroundColor = '#30363d';
             } else {
-                this.sendButton.disabled = false;
                 this.sendButton.innerHTML = '<img src="/images/send.svg" alt="Отправить">';
                 this.sendButton.style.backgroundColor = '';
             }
         }
+        if (this.textarea) {
+            this.textarea.disabled = isLoading;
+        }
     }
 
     async sendMessageToServer(message, model) {
-        const currentChatId = this.chatManager.getCurrentChatId();
+        let currentChatId = this.chatManager.getCurrentChatId();
+
+        // Если нет активного чата, создаем временный чат
+        if (!currentChatId || currentChatId === '/' || currentChatId === 'new-chat') {
+            console.log('No active chat, creating temporary chat');
+            if (window.app && window.app.sidebar) {
+                window.app.sidebar.createNewChat();
+                currentChatId = 'new-chat';
+                this.chatManager.setCurrentChatId(currentChatId);
+            }
+        }
 
         // Добавляем сообщение пользователя в историю
         this.chatManager.addMessage(message, 'user');
@@ -151,7 +132,6 @@ export class InputHandler {
             if (data.error) {
                 responseText = 'Ошибка: ' + data.error;
             } else if (data.response !== undefined && data.response !== null) {
-                // Преобразуем response в строку, если это число или другой тип
                 responseText = this.convertToString(data.response);
 
                 // Если сервер вернул новый ID чата (при создании нового чата)
@@ -182,7 +162,6 @@ export class InputHandler {
         }
     }
 
-    // Универсальная функция преобразования в строку
     convertToString(value) {
         if (value === null || value === undefined) {
             return '';
@@ -212,10 +191,9 @@ export class InputHandler {
         }
     }
 
-    // Делаем метод глобально доступным для обратной совместимости
     static autoResize(textarea) {
         textarea.style.height = 'auto';
-        const maxHeight = 150;
+        const maxHeight = 200;
         const newHeight = Math.min(textarea.scrollHeight, maxHeight);
         textarea.style.height = newHeight + 'px';
         textarea.style.overflowY = newHeight >= maxHeight ? 'auto' : 'hidden';

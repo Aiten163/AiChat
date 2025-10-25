@@ -27,49 +27,50 @@ class UsersTable extends Table
         return [
             TD::make('id', 'ID')
                 ->sort()
-                ->width('80px')
+                ->width('70px')
                 ->filter(TD::FILTER_NUMERIC),
 
             TD::make('name', 'Имя')
                 ->sort()
                 ->filter(TD::FILTER_TEXT)
-                ->width('200px'),
+                ->width('150px'),
 
             TD::make('is_admin', 'Администратор')
                 ->sort()
-                ->width('150px')
+                ->width('70px')
+                ->filter(TD::FILTER_SELECT, [
+                    1 => 'Да',
+                    0 => 'Нет',
+                ])
                 ->render(function (User $user) {
                     return $user->is_admin ? 'Да' : 'Нет';
                 }),
 
-            TD::make('activity.number_messages', 'Сообщения')
-                ->sort()
-                ->width('150px')
+            TD::make('number_messages', 'Кол-во сообщений')
+                ->width('70px')
                 ->render(function (User $user) {
-                    return $user->UserActivity ? $user->UserActivity->number_messages : 0;
+                    return $user->userActivity->number_messages;
                 }),
 
-            TD::make('activity.lastLogin', 'Последний вход')
-                ->sort()
-                ->width('200px')
+            TD::make('lastLogin', 'Последний вход')
+                ->width('70px')
                 ->render(function (User $user) {
-                    return $user->UserActivity && $user->UserActivity->lastLogin
-                        ? $user->UserActivity->lastLogin->format('d.m.Y H:i')
+                    return $user->userActivity && $user->userActivity->lastLogin
+                        ? $user->userActivity->lastLogin->format('d.m.Y H:i')
                         : 'Никогда';
                 }),
 
-            TD::make('activity.lastMessage', 'Последнее сообщение')
-                ->sort()
-                ->width('200px')
+            TD::make('lastMessage', 'Последнее сообщение')
+                ->width('170px')
                 ->render(function (User $user) {
-                    return $user->UserActivity && $user->UserActivity->lastMessage
-                        ? $user->UserActivity->lastMessage->format('d.m.Y H:i')
+                    return $user->userActivity && $user->userActivity->lastMessage
+                        ? $user->userActivity->lastMessage->format('d.m.Y H:i')
                         : 'Нет сообщений';
                 }),
 
             TD::make('action', 'Действия')
                 ->alignRight()
-                ->width('120px')
+                ->width('50px')
                 ->render(function (User $user) {
                     return ModalToggle::make("")
                         ->modal('editUser')

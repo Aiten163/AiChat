@@ -9,6 +9,9 @@ Route::get('/{chatId?}',[HomeController::class, 'index'])->whereNumber('chatId' 
 Route::get('/new-chat', function () {
     return redirect('/');
 });
+Route::get('/login', function () {
+    return redirect('/');
+});
 
 Route::get('/getHistoryChat',[ HomeController::class, 'getHistoryChat']);
 

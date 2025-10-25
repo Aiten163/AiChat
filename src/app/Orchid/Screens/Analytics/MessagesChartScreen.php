@@ -97,6 +97,7 @@ class MessagesChartScreen extends Screen
 
         // Получаем данные из таблицы chatMessages
         $data = ChatMessage::whereBetween('created_at', [$start, $end])
+            ->where('role', 'user')
             ->selectRaw('DATE(created_at) as date, COUNT(*) as total_messages')
             ->groupBy('date')
             ->orderBy('date')
@@ -127,16 +128,13 @@ class MessagesChartScreen extends Screen
     /**
      * Статистика за период
      */
-    /**
-     * Статистика за период
-     */
     private function getStats(string $startDate, string $endDate): array
     {
         $start = Carbon::parse($startDate)->startOfDay();
         $end = Carbon::parse($endDate)->endOfDay();
 
         // Общее количество сообщений
-        $totalMessages = ChatMessage::whereBetween('created_at', [$start, $end])->count();
+        $totalMessages = ChatMessage::whereBetween('created_at', [$start, $end])->where('role', 'user')->count();
 
         // Количество уникальных пользователей (через связь с чатами)
         $activeUsers = ChatMessage::whereBetween('created_at', [$start, $end])

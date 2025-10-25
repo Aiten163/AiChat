@@ -70,15 +70,53 @@ export class Sidebar {
     }
 
     toggleSidebar() {
+        const isOpening = !this.sidebar.classList.contains('open');
+
         this.sidebar.classList.toggle('open');
-        if (this.container) this.container.classList.toggle('sidebar-open');
         this.sidebarOverlay.classList.toggle('open');
+
+        // Блокируем скролл body когда сайдбар открыт
+        if (isOpening) {
+            document.body.classList.add('sidebar-open');
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.classList.remove('sidebar-open');
+            document.body.style.overflow = '';
+        }
     }
 
     closeSidebar() {
         this.sidebar.classList.remove('open');
-        if (this.container) this.container.classList.remove('sidebar-open');
         this.sidebarOverlay.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+        document.body.style.overflow = '';
+    }
+
+    bindChatItems() {
+        const chatItems = document.querySelectorAll('.chat-item');
+        console.log('Found chat items:', chatItems.length);
+
+        chatItems.forEach(item => {
+            const chatId = item.getAttribute('data-chat-id');
+
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Chat item clicked:', chatId);
+                this.selectChat(item);
+                this.closeSidebar();
+            });
+        });
+
+        // Закрываем сайдбар при клике на кнопки пользователя
+        const userButtons = document.querySelectorAll('.user-actions-sidebar button, .user-actions-sidebar a');
+        userButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setTimeout(() => {
+                    this.closeSidebar();
+                }, 100);
+            });
+        });
     }
 
     selectChat(chatItem) {
@@ -105,15 +143,19 @@ export class Sidebar {
         }
     }
 
-    // Функция создания нового чата
+    updateActiveChat(activeChatItem) {
+        const chatItems = document.querySelectorAll('.chat-item');
+        chatItems.forEach(chat => {
+            chat.classList.remove('active');
+            console.log('Removed active class from:', chat.getAttribute('data-chat-id'));
+        });
+
+        activeChatItem.classList.add('active');
+        console.log('Added active class to:', activeChatItem.getAttribute('data-chat-id'));
+    }
+
     createNewChat() {
         console.log('Создание нового чата в UI');
-
-        const chatList = document.getElementById('chat-list');
-        if (!chatList) {
-            console.error('Chat list not found');
-            return;
-        }
 
         // Временный ID для UI (будет заменен на серверный при первом сообщении)
         const tempChatId = 'new-chat';
@@ -130,47 +172,48 @@ export class Sidebar {
 
         // Обновляем активные чаты в сайдбаре
         this.markCurrentChat();
-    }
 
-    updateActiveChat(activeChatItem) {
-        const chatItems = document.querySelectorAll('.chat-item');
-        chatItems.forEach(chat => {
-            chat.classList.remove('active');
-            console.log('Removed active class from:', chat.getAttribute('data-chat-id'));
-        });
-
-        activeChatItem.classList.add('active');
-        console.log('Added active class to:', activeChatItem.getAttribute('data-chat-id'));
+        return tempChatId;
     }
 
     updateTempChatToServerChat(tempChatId, serverChatId, chatName = 'Новый чат') {
         console.log('Updating temp chat:', tempChatId, 'to server chat:', serverChatId, 'with name:', chatName);
 
-        const chatItems = document.querySelectorAll('.chat-item');
-        let tempChatItem = null;
+        const chatList = document.getElementById('chat-list');
+        if (!chatList) {
+            console.error('Chat list not found');
+            return;
+        }
 
-        // Находим временный чат
-        chatItems.forEach(item => {
-            if (item.getAttribute('data-chat-id') === tempChatId) {
-                tempChatItem = item;
-            }
+        // Создаем новый элемент чата
+        const newChatItem = document.createElement('li');
+        newChatItem.className = 'chat-item active';
+        newChatItem.setAttribute('data-chat-id', serverChatId);
+        newChatItem.innerHTML = `
+            <div class="chat-name">${chatName}</div>
+            <div class="chat-preview">Чат создан</div>
+        `;
+
+        // Добавляем обработчик события для нового чата
+        newChatItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.selectChat(newChatItem);
         });
 
-        if (tempChatItem) {
-            // Обновляем ID и название
-            tempChatItem.setAttribute('data-chat-id', serverChatId);
-            tempChatItem.querySelector('.chat-name').textContent = chatName;
-            tempChatItem.querySelector('.chat-preview').textContent = 'Чат создан';
+        // Добавляем новый чат в начало списка
+        chatList.insertBefore(newChatItem, chatList.firstChild);
 
-            console.log('Temp chat updated to server chat:', serverChatId);
+        // Обновляем UI
+        this.updateActiveChat(newChatItem);
 
-            // Если этот чат активен, обновляем URL
-            if (tempChatItem.classList.contains('active')) {
-                const newUrl = '/' + serverChatId;
-                history.replaceState({ chatId: serverChatId }, '', newUrl);
-                this.chatManager.setCurrentChatId(serverChatId);
-                console.log('URL updated to server chat ID:', serverChatId);
-            }
-        }
+        // Обновляем URL
+        const newUrl = '/' + serverChatId;
+        history.replaceState({ chatId: serverChatId }, '', newUrl);
+
+        console.log('Temp chat updated to server chat:', serverChatId);
+
+        // Перепривязываем обработчики
+        this.bindChatItems();
     }
 }

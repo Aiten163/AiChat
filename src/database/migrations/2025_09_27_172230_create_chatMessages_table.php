@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('chat_id')->constrained('chats');
             $table->string('role');
             $table->text('message');
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

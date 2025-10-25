@@ -1,0 +1,122 @@
+/* ===== ПАНЕЛЬ ВВОДА СООБЩЕНИЙ ===== */
+#input-area {
+    background-color: rgb(13, 17, 23);
+    border-top: 1px solid #30363d;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1040;
+    padding: 0.5rem;
+}
+
+/* Контейнер для элементов ввода */
+#input-wrapper {
+    background-color: rgb(22, 27, 34);
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 100%;
+}
+
+/* ===== ВЕРХНЯЯ СТРОКА - ПОЛЕ ВВОДА ===== */
+.input-top-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 40px;
+}
+
+/* Текстовое поле */
+#text-request {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+}
+
+#text-request textarea {
+    background-color: transparent;
+    color: #e6edf3;
+    border: none;
+    resize: none;
+    width: 100%;
+    min-height: 40px;
+    max-height: 200px; /* УВЕЛИЧИЛИ с 120px до 200px */
+    padding: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    outline: none;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#text-request textarea::placeholder {
+    color: #7d8590;
+}
+
+/* ===== НИЖНЯЯ СТРОКА - ВЫБОР МОДЕЛИ И КНОПКА ===== */
+.input-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+/* Выбор модели */
+#input-model {
+    flex-shrink: 0;
+}
+
+#input-model select {
+    background-color: rgb(33, 38, 45);
+    color: #e6edf3;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 150px;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+/* Кнопка отправки */
+#button-send {
+    flex-shrink: 0;
+}
+
+#button-send button {
+    background-color: rgb(31, 111, 235);
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    box-sizing: border-box;
+}
+
+#button-send button:hover {
+    background-color: rgb(41, 121, 255);
+}
+
+#button-send button:disabled {
+    background-color: #30363d;
+    cursor: not-allowed;
+}
+
+#button-send img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+}

@@ -5,7 +5,6 @@ namespace App\Orchid\Screens;
 use App\Models\ChatMessage;
 use App\Orchid\Layouts\MessagesTable;
 use Orchid\Screen\Screen;
-use Orchid\Support\Facades\Layout;
 
 class MessagesScreen extends Screen
 {

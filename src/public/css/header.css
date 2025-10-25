@@ -1,0 +1,148 @@
+/* ===== ХЕДЕР - ИСПРАВЛЕНИЯ Z-INDEX ===== */
+header {
+    background-color: rgb(13, 17, 23) !important;
+    border-bottom: 1px solid #30363d;
+    z-index: 1050 !important; /* Убедимся, что хедер выше всего */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 76px; /* Фиксированная высота хедера */
+}
+
+/* ===== САЙДБАР И МЕНЮ ===== */
+#sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    max-width: 300px;
+    background-color: #1a1a1a;
+    border-right: 1px solid #444;
+    transition: left 0.3s ease;
+    z-index: 1040;
+    padding-top: 76px;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+}
+
+#sidebar.open {
+    left: 0;
+}
+
+/* Оверлей для сайдбара */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1039;
+    display: none;
+    backdrop-filter: blur(2px);
+}
+
+.sidebar-overlay.open {
+    display: block;
+}
+
+/* Список чатов в сайдбаре */
+.chat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chat-item {
+    padding: 12px 20px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    color: #e0e0e0;
+    background-color: #212529;
+}
+
+.chat-item:hover {
+    background-color: #2a2a2a;
+}
+
+.chat-item.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.chat-item .chat-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.chat-item .chat-preview {
+    font-size: 0.85rem;
+    color: #aaa;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Информация пользователя в сайдбаре */
+.user-info-sidebar {
+    padding: 15px 20px;
+    border-bottom: 1px solid #444;
+    background-color: #2a2a2a;
+}
+
+.user-info-sidebar .user-name {
+    font-weight: 500;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.user-actions-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ===== МОДАЛЬНЫЕ ОКНА ===== */
+.modal-backdrop {
+    z-index: 1045 !important;
+}
+
+#loginModal {
+    z-index: 1050 !important;
+}
+
+/* Убедимся, что модальное окно поверх сайдбара */
+#loginModal.modal {
+    z-index: 1060 !important;
+}
+
+/* Предотвращаем конфликты z-index */
+#sidebar {
+    z-index: 1040;
+}
+
+.sidebar-overlay {
+    z-index: 1039;
+}
+
+header {
+    z-index: 1050 !important;
+}
+
+/* Исправление для multiple backdrops */
+.modal-backdrop:not(:first-child) {
+    display: none !important;
+}
+
+/* Emergency fix for blocked page */
+body.modal-open.blocked {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+.modal-backdrop.blocking {
+    display: none !important;
+}

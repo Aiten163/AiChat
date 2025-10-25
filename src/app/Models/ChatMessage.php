@@ -6,17 +6,46 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Orchid\Filters\Filterable;
+use Orchid\Filters\Types\Like;
+use Orchid\Filters\Types\Where;
 
 class ChatMessage extends Model
 {
-    use HasFactory;
-    use Filterable;
+    use HasFactory, Filterable;
 
+    public $timestamps = ["created_at"];
     protected $table = 'chatMessages';
+
     protected $fillable = [
         'role',
         'message',
         'chat_id',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
+
+    /**
+     * Available filters for the model
+     */
+    protected $allowedFilters = [
+        'id'        => Where::class,
+        'role'      => Where::class,
+        'message'   => Like::class,
+        'chat_id'   => Where::class,
+        'created_at'=> Where::class,
+    ];
+
+    /**
+     * Available sorts for the model
+     */
+    protected $allowedSorts = [
+        'id',
+        'role',
+        'message',
+        'chat_id',
+        'created_at',
     ];
 
     public function chat(): BelongsTo

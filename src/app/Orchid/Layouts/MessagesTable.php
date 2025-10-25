@@ -3,10 +3,12 @@
 namespace App\Orchid\Layouts;
 
 use App\Models\ChatMessage;
+use Nette\Utils\Html;
 use Orchid\Screen\TD;
 use Orchid\Screen\Actions\Link;
 use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\Repository;
+use Orchid\Support\Facades\Layout;
 
 class MessagesTable extends Table
 {
@@ -31,17 +33,27 @@ class MessagesTable extends Table
                 }),
 
             TD::make('message', 'Текст сообщения')
+                ->sort()
+                ->filter(TD::FILTER_TEXT)
                 ->render(function (ChatMessage $message) {
-                    return \Illuminate\Support\Str::limit($message->message, 100);
+                    return view('admin.message-preview', [
+                        'shortMessage' => \Illuminate\Support\Str::limit($message->message, 75),
+                        'fullMessage' => $message->message,
+                        'messageId' => $message->id,
+                    ])->render();
                 }),
 
             TD::make('chat_id', 'Чат')
+                ->width(100)
+                ->sort()
+                ->filter(TD::FILTER_NUMERIC)
                 ->render(function (ChatMessage $message) {
                     return "{$message->chat_id} - {$message->chat->name}";
-                })
-                ->sort(),
+                }),
 
             TD::make('user_id', 'Отправитель')
+                ->sort()
+                ->filter(TD::FILTER_NUMERIC)
                 ->render(function (ChatMessage $message) {
                     $user = $message->chat->user;
                     return $user->name;
@@ -55,21 +67,15 @@ class MessagesTable extends Table
                     'system' => 'Система',
                 ])
                 ->render(function (ChatMessage $message) {
-                    return \Illuminate\Support\Str::limit($message->role, 100);
+                    return $message->role; // Убрал Str::limit, чтобы показывать полную роль
                 }),
 
             TD::make('created_at', 'Дата и время')
-                ->sort()
-                ->render(function (ChatMessage $message) {
-                    return $message->created_at->format('d.m.Y H:i:s');
-                }),
-
-//            TD::make('actions', 'Действия')
-//                ->render(function (ChatMessage $message) {
-//                    return Link::make('Просмотреть')
-//                        ->route('platform.messages', $message->id)
-//                        ->icon('eye');
-//                }),
+            ->sort()
+            ->filter(TD::FILTER_DATE_RANGE)
+            ->render(function (ChatMessage $message) {
+                return $message->created_at->format('d.m.Y H:i:s');
+            }),
         ];
     }
 }

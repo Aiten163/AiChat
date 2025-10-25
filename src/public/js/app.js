@@ -4,35 +4,41 @@ import { ChatManager } from './components/chat.js';
 
 class App {
     constructor() {
-        this.sidebar = null;
-        this.inputHandler = null;
         this.chatManager = null;
+        this.inputHandler = null;
+        this.sidebar = null;
         this.init();
     }
 
     init() {
-        // Инициализация компонентов
-        this.chatManager = new ChatManager();
-        this.sidebar = new Sidebar(this.chatManager);
-        this.inputHandler = new InputHandler(this.chatManager);
+        // Ждем загрузки DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeApp());
+        } else {
+            this.initializeApp();
+        }
+    }
 
-        // Делаем глобально доступными часто используемые функции
-        window.createNewChat = () => this.sidebar.createNewChat();
-        window.loadChatHistory = (chatId) => this.chatManager.loadChatHistory(chatId);
+    initializeApp() {
+        try {
+            // Инициализируем менеджер чата
+            this.chatManager = new ChatManager();
 
-        // Для обратной совместимости с inline обработчиками
-        window.autoResize = (textarea) => InputHandler.autoResize(textarea);
-        window.sendMessage = () => InputHandler.sendMessage();
+            // Инициализируем обработчик ввода
+            this.inputHandler = new InputHandler(this.chatManager);
 
-        console.log('App initialized');
+            // Инициализируем сайдбар
+            this.sidebar = new Sidebar(this.chatManager);
+
+            // Делаем доступным глобально для отладки
+            window.app = this;
+
+            console.log('App initialized successfully');
+        } catch (error) {
+            console.error('Error initializing app:', error);
+        }
     }
 }
 
-// Инициализация приложения когда DOM готов
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        window.app = new App();
-    });
-} else {
-    window.app = new App();
-}
+// Запускаем приложение
+new App();

@@ -25,8 +25,11 @@ class UserListScreen extends Screen
     public function query(): iterable
     {
         return [
-            'users' => User::with('UserActivity')
-                ->orderBy('id')
+            'users' => User::with('userActivity')
+                ->leftJoin('userActivity', 'users.id', '=', 'userActivity.user_id')
+                ->select('users.*', 'userActivity.number_messages', 'userActivity.lastLogin', 'userActivity.lastMessage')
+                ->filters()
+                ->defaultSort('id')
                 ->paginate(20)
         ];
     }
@@ -52,27 +55,6 @@ class UserListScreen extends Screen
     }
 
     /**
-     * The screen's action buttons.
-     *
-     * @return \Orchid\Screen\Action[]
-     */
-    public function commandBar(): array
-    {
-        return [
-            ModalToggle::make('Добавить пользователя')
-                ->icon('plus')
-                ->modal('createUser')
-                ->method('save')
-                ->modalTitle('Добавление пользователя'),
-
-            Button::make('Сбросить статистику')
-                ->icon('refresh')
-                ->method('resetStatistics')
-                ->confirm('Вы уверены, что хотите сбросить статистику сообщений для всех пользователей?'),
-        ];
-    }
-
-    /**
      * The screen's layout elements.
      *
      * @return \Orchid\Screen\Layout[]|string[]
@@ -81,18 +63,6 @@ class UserListScreen extends Screen
     {
         return [
             UsersTable::class,
-
-            // Модальное окно для создания пользователя
-            Layout::modal('createUser', Layout::rows([
-                Input::make('user.name')
-                    ->title('Имя')
-                    ->placeholder('Введите имя')
-                    ->required(),
-                CheckBox::make('user.is_admin')
-                    ->title('Администратор')
-                    ->placeholder('Права администратора')
-                    ->sendTrueOrFalse(),
-            ]))->title('Добавить пользователя')->applyButton('Добавить'),
 
             // Модальное окно для редактирования пользователя
             Layout::modal('editUser', Layout::rows([

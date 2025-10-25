@@ -4,25 +4,56 @@ export class ChatManager {
     constructor() {
         this.currentChatId = this.getCurrentChatIdFromURL();
         console.log('Initial current chat ID:', this.currentChatId);
+
+        // Инициализируем Marked и Highlight.js
+        this.initMarkdownRenderer();
+
         this.init();
     }
 
+    initMarkdownRenderer() {
+        // Проверяем, что библиотеки загружены
+        if (typeof marked === 'undefined') {
+            console.error('Marked.js not loaded');
+            return;
+        }
+
+        if (typeof hljs === 'undefined') {
+            console.error('Highlight.js not loaded');
+            return;
+        }
+
+        // Настраиваем Marked для рендеринга Markdown
+        marked.setOptions({
+            highlight: (code, lang) => {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (err) {
+                        console.warn(`Highlight.js error for language ${lang}:`, err);
+                    }
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            langPrefix: 'hljs language-',
+            breaks: true,
+            gfm: true
+        });
+    }
+
     init() {
-        // Если в URL корневой путь "/", показываем пустой экран
         if (!this.currentChatId || this.currentChatId === '/') {
             console.log('Root path, showing empty state');
             this.showEmptyState();
             return;
         }
 
-        // Если это новый чат, показываем пустой экран
         if (this.currentChatId === 'new-chat') {
             console.log('New chat, showing empty state');
             this.showEmptyState();
             return;
         }
 
-        // Загружаем историю только для существующих чатов
         this.loadChatHistory(this.currentChatId);
     }
 
@@ -30,13 +61,11 @@ export class ChatManager {
         const path = window.location.pathname;
         console.log('Current path:', path);
 
-        // Если путь просто "/", возвращаем null
         if (path === '/' || path === '') {
             console.log('Root path, no chat ID');
             return null;
         }
 
-        // Убираем начальный и конечный слэши и получаем последнюю часть
         const pathParts = path.replace(/^\/|\/$/g, '').split('/');
         const chatId = pathParts[pathParts.length - 1];
         console.log('Extracted chat ID:', chatId);
@@ -52,14 +81,13 @@ export class ChatManager {
         }
 
         historyContainer.innerHTML = `
-            <div class="text-center text-muted p-4">
-                <div class="mb-3">
-                    <i class="bi bi-chat-dots" style="font-size: 3rem;"></i>
-                </div>
-                <h5 class="mb-2">Добро пожаловать в AI Chat</h5>
-                <p class="mb-3">Начните новый диалог или выберите существующий чат из списка</p>
+        <div class="text-center text-muted p-4">
+            <div class="mb-3">
+                <i class="bi bi-chat-dots" style="font-size: 3rem;"></i>
             </div>
-        `;
+            <p class="mb-3">Начните новый диалог или выберите существующий чат из списка</p>
+        </div>
+    `;
     }
 
     loadChatHistory(chatId = null) {
@@ -145,14 +173,28 @@ export class ChatManager {
                 historyHTML += '<div class="message ai-message">';
             }
 
+            // Для AI сообщений рендерим Markdown, для пользователей - простой текст
+            const content = role === 'user'
+                ? this.escapeAndFormatText(messageText)
+                : this.renderMarkdown(messageText);
+
             historyHTML += `
+                <button class="copy-button" title="Скопировать сообщение" data-text="${this.escapeHtmlAttribute(messageText)}">
+                    <i class="bi bi-clipboard"></i>
+                </button>
                 <div class="message-content">
-                    <p>${escapeHtml(messageText)}</p>
+                    ${content}
                 </div>
             </div>`;
         });
 
         historyContainer.innerHTML = historyHTML;
+
+        // Добавляем обработчики для кнопок копирования
+        this.bindCopyButtons();
+
+        // Применяем подсветку синтаксиса
+        this.applySyntaxHighlighting();
 
         // Скроллим вниз после рендера
         setTimeout(() => {
@@ -162,78 +204,203 @@ export class ChatManager {
         console.log('History rendered, messages count:', messages.length);
     }
 
+    renderMarkdown(text) {
+        if (!text) return '';
+
+        try {
+            if (typeof marked === 'undefined') {
+                console.warn('Marked.js not available, using plain text');
+                return this.escapeAndFormatText(text);
+            }
+
+            // Рендерим Markdown
+            let rendered = marked.parse(text);
+
+            // Добавляем кнопки копирования для блоков кода
+            rendered = this.addCopyButtonsToCodeBlocks(rendered);
+
+            return rendered;
+        } catch (error) {
+            console.error('Markdown rendering error:', error);
+            return this.escapeAndFormatText(text);
+        }
+    }
+
+    addCopyButtonsToCodeBlocks(html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        const preBlocks = tempDiv.querySelectorAll('pre');
+        preBlocks.forEach((pre, index) => {
+            const codeBlock = pre.querySelector('code');
+            if (codeBlock) {
+                const language = this.getCodeLanguage(codeBlock);
+
+                // Создаем заголовок с кнопкой копирования
+                const header = document.createElement('div');
+                header.className = 'code-block-header';
+                header.innerHTML = `
+                    <span class="code-language">${language}</span>
+                    <button class="code-copy-button" data-code-index="${index}" title="Скопировать код">
+                        <i class="bi bi-clipboard"></i> Копировать
+                    </button>
+                `;
+
+                pre.insertBefore(header, codeBlock);
+            }
+        });
+
+        return tempDiv.innerHTML;
+    }
+
+    getCodeLanguage(codeBlock) {
+        const className = codeBlock.className || '';
+        const match = className.match(/language-(\w+)/);
+        return match ? match[1].toUpperCase() : 'CODE';
+    }
+
+    escapeAndFormatText(text) {
+        if (!text) return '';
+
+        return escapeHtml(text)
+            .replace(/\n/g, '<br>');
+    }
+
+    escapeHtmlAttribute(text) {
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#x27;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+    }
+
+    applySyntaxHighlighting() {
+        if (typeof hljs === 'undefined') {
+            console.warn('Highlight.js not available');
+            return;
+        }
+
+        document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    }
+
+    bindCopyButtons() {
+        // Кнопки копирования для всего сообщения
+        const copyButtons = document.querySelectorAll('.copy-button');
+        copyButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const textToCopy = button.getAttribute('data-text');
+                this.copyToClipboard(textToCopy, button);
+            });
+        });
+
+        // Кнопки копирования для блоков кода
+        const codeCopyButtons = document.querySelectorAll('.code-copy-button');
+        codeCopyButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const pre = button.closest('pre');
+                const codeBlock = pre?.querySelector('code');
+                if (codeBlock) {
+                    const textToCopy = codeBlock.textContent || codeBlock.innerText;
+                    this.copyToClipboard(textToCopy, button);
+                }
+            });
+        });
+    }
+
+    async copyToClipboard(text, button) {
+        try {
+            await navigator.clipboard.writeText(text);
+
+            // Визуальная обратная связь
+            const originalHTML = button.innerHTML;
+
+            if (button.classList.contains('code-copy-button')) {
+                button.innerHTML = '<i class="bi bi-check"></i> Скопировано';
+            } else {
+                button.innerHTML = '<i class="bi bi-check"></i>';
+            }
+
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copied');
+            }, 2000);
+
+        } catch (err) {
+            console.error('Ошибка копирования: ', err);
+            // Fallback для старых браузеров
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check"></i>';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copied');
+            }, 2000);
+        }
+    }
+
     addMessage(text, type = 'assistant') {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
 
-        // Преобразуем text в строку
         const messageText = this.convertToString(text);
 
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type === 'user' || type === 'user-message' ? 'user-message' : 'ai-message'}`;
 
-        // Устанавливаем стили по отдельности
-        messageDiv.style.marginBottom = '1rem';
-        messageDiv.style.padding = '0.75rem 1rem';
-        messageDiv.style.borderRadius = '12px';
-        messageDiv.style.maxWidth = '80%';
-        messageDiv.style.wordWrap = 'break-word';
-        messageDiv.style.color = '#e6edf3';
+        // Добавляем кнопку копирования
+        const copyButton = document.createElement('button');
+        copyButton.className = 'copy-button';
+        copyButton.title = 'Скопировать сообщение';
+        copyButton.setAttribute('data-text', messageText);
+        copyButton.innerHTML = '<i class="bi bi-clipboard"></i>';
 
-        if (type === 'user' || type === 'user-message') {
-            messageDiv.style.backgroundColor = 'rgb(57, 88, 133)';
-            messageDiv.style.marginLeft = 'auto';
-            messageDiv.style.border = '1px solid rgba(86, 125, 186, 0.3)';
-        } else {
-            messageDiv.style.backgroundColor = 'rgb(33, 38, 45)';
-            messageDiv.style.border = '1px solid #30363d';
-            messageDiv.style.marginRight = 'auto';
-        }
+        copyButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.copyToClipboard(messageText, copyButton);
+        });
 
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
 
-        const paragraph = document.createElement('p');
-        paragraph.innerHTML = this.formatMessageText(messageText);
+        // Для AI сообщений используем Markdown, для пользователей - простой текст
+        if (type === 'user' || type === 'user-message') {
+            messageContent.innerHTML = this.escapeAndFormatText(messageText);
+        } else {
+            messageContent.innerHTML = this.renderMarkdown(messageText);
+        }
 
-        messageContent.appendChild(paragraph);
+        messageDiv.appendChild(copyButton);
         messageDiv.appendChild(messageContent);
-
         historyContainer.appendChild(messageDiv);
 
-        // Скроллим вниз после добавления сообщения
+        // Применяем подсветку синтаксиса для нового сообщения
+        setTimeout(() => {
+            this.applySyntaxHighlighting();
+        }, 0);
+
+        // Скроллим вниз
         setTimeout(() => {
             this.scrollToBottom();
         }, 50);
 
         console.log('Message added:', { type, text: messageText.substring(0, 50) + '...' });
-
-        // Отладочная информация
-        console.log('Message element styles:', {
-            backgroundColor: messageDiv.style.backgroundColor,
-            border: messageDiv.style.border,
-            marginLeft: messageDiv.style.marginLeft,
-            marginRight: messageDiv.style.marginRight
-        });
     }
 
-    formatMessageText(text) {
-        if (!text) return '';
-
-        // Убеждаемся, что text - строка
-        const textString = this.convertToString(text);
-
-        return textString
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;")
-            .replace(/\n/g, '<br>')
-            .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
-    }
-
-    // Универсальная функция преобразования в строку
     convertToString(value) {
         if (value === null || value === undefined) {
             return '';
@@ -275,7 +442,6 @@ export class ChatManager {
             document.querySelector('input[name="_token"]')?.value || '';
     }
 
-    // Метод для обновления ID чата после создания на сервере
     updateChatId(oldChatId, newChatId) {
         if (this.currentChatId === oldChatId) {
             this.currentChatId = newChatId;
@@ -283,13 +449,11 @@ export class ChatManager {
         console.log('Chat ID updated from', oldChatId, 'to', newChatId);
     }
 
-    // Метод для проверки, является ли чат временным
     isTempChat(chatId = null) {
         const targetChatId = chatId || this.currentChatId;
         return !targetChatId || targetChatId === 'new-chat' || targetChatId.startsWith('new-');
     }
 
-    // Метод для очистки истории (для новых чатов)
     clearHistory() {
         const historyContainer = document.getElementById('history-container');
         if (historyContainer) {
@@ -297,7 +461,6 @@ export class ChatManager {
         }
     }
 
-    // Метод для отображения ошибки
     showError(message) {
         const historyContainer = document.getElementById('history-container');
         if (historyContainer) {

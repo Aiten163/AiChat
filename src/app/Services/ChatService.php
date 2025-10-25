@@ -21,22 +21,28 @@ class ChatService
 
     public function __construct($chatID, $text, $neural_name, $userID)
     {
+        $this->titleService = new ChatTitleService();
+
         // Если chatID = 'new-chat' или пустой, создаем новый чат
         if (!$chatID || $chatID === 'new-chat') {
+            $chatTitle = $this->titleService->generateTitle($text);
+
             $this->chat = Chat::create([
                 'user_id' => $userID,
-                'name' => substr($text, 0, 20) . '...'
+                'name' => $chatTitle
             ]);
             $this->isNewChat = true;
-            Log::info('Created new chat with ID: ' . $this->chat->id);
+            Log::info('Created new chat with ID: ' . $this->chat->id . ', title: ' . $chatTitle);
         } else {
             // Ищем существующий чат
             $this->chat = Chat::find($chatID);
             if (!$this->chat) {
                 // Если чат не найден, создаем новый
+                $chatTitle = $this->titleService->generateTitle($text);
+
                 $this->chat = Chat::create([
                     'user_id' => $userID,
-                    'name' => substr($text, 0, 20) . '...'
+                    'name' => $chatTitle
                 ]);
                 $this->isNewChat = true;
                 Log::warning('Chat not found, created new chat with ID: ' . $this->chat->id);
@@ -65,11 +71,16 @@ class ChatService
             ];
         })->toArray();
 
-        $test['message']['content'] = time();
-        $test['message']['role'] = 'helper';
-        $response = $test; //Ollama::model($this->neural_name)->chat($conversation);
+        // Добавляем системный промпт с инструкциями
+        $systemPrompt = [
+            'role' => 'system',
+            'content' => $this->getSystemPrompt()
+        ];
 
-        Log::info('Processing chat ID: ' . $this->chat->id);
+        // Вставляем системный промпт в начало конверсации
+        array_unshift($conversation, $systemPrompt);
+
+        $response = Ollama::model($this->neural_name)->chat($conversation);
 
         $data = [ // Create current request and response from neural
             [
@@ -98,18 +109,45 @@ class ChatService
         ];
     }
 
+
+    /**
+     * Генерирует системный промпт с инструкциями для нейросети
+     */
+    private function getSystemPrompt(): string
+    {
+        return "Ты - полезный AI-ассистент. Строго соблюдай следующие правила:
+        1. **Язык ответов**: Всегда отвечай на русском языке, если пользователь явно не запросил другой язык.
+        2. **Форматирование Markdown**: Всегда используй Markdown-разметку для форматирования ответов:
+           - Заголовки разных уровней (# ## ###)
+           - **Жирный текст** для важных понятий
+           - *Курсив* для акцентов
+           - Списки (нумерованные и ненумерованные)
+           - Блоки кода с указанием языка
+           - Таблицы для структурированных данных
+           - Цитаты (>)
+        3. **Оформление кода**: Для любого фрагмента кода:
+           - Всегда используй блоки кода с тройными апострофами и указанием языка
+           - Указывай язык программирования после апострофов (```python, ```php, ```javascript и т.д.)
+           - Комментируй сложные части кода на русском языке
+           - Для небольших фрагментов используй `встроенный код`
+        4. **Структура ответа**:
+           - Дели ответ на логические разделы
+           - Используй заголовки для основных тем
+           - Выделяй ключевые моменты жирным шрифтом
+           - Для пошаговых инструкций используй нумерованные списки
+        Следуй этим правилам во всех ответах.";
+    }
+
     private function getTemperature($neural_name): int
     {
         return Neural::where('name', $neural_name)->value('temperature');
     }
 
-    // Геттер для получения ID чата (можно использовать отдельно)
     public function getChatId()
     {
         return $this->chat->id;
     }
 
-    // Геттер для проверки, новый ли это чат
     public function isNewChat()
     {
         return $this->isNewChat;

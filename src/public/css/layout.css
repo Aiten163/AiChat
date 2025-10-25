@@ -1,0 +1,38 @@
+/* ===== ОСНОВНЫЕ СТИЛИ СТРАНИЦЫ ===== */
+body {
+    background-color: rgb(13, 17, 23);
+    color: #e6edf3;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Основной контейнер приложения */
+#container {
+    background-color: rgb(13, 17, 23);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin-top: 76px; /* Отступ под хедер */
+    margin-bottom: 0; /* УБИРАЕМ нижний отступ, т.к. поле ввода теперь внутри контейнера */
+    height: calc(100vh - 76px); /* Только минус хедер */
+    min-height: calc(100vh - 76px);
+    overflow: hidden;
+    position: relative;
+}
+
+/* Убедимся, что контент не перекрывается */
+#history-container::after {
+    content: '';
+    display: block;
+    height: 10px;
+}
+
+/* Хак для мобильного Safari */
+@supports (-webkit-touch-callout: none) {
+    #history-container {
+        height: calc(100% - 10px);
+    }
+}
