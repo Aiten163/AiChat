@@ -60,6 +60,14 @@ class NeuralTable extends Table
                 ->render(function (Neural $neural) {
                     return \Illuminate\Support\Str::limit($neural->description, 50);
                 }),
+            TD::make('base_prompt_id', 'Базовый промт')
+                ->render(function (Neural $neural) {
+                    if ($neural->basePrompt) {
+                        return $neural->basePrompt->name;
+                    }
+                    return '<span class="text-muted">Не выбран</span>';
+                })
+                ->sort(),
 
             TD::make('action', 'Действия')
                 ->alignRight()

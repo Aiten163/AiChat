@@ -14,9 +14,11 @@ class ChatService
 {
     protected Chat|null $chat;
     protected string $text;
-    protected string $neural_name;
+    protected Neural $neural;
     protected int $userID;
     protected int $temperature = 50;
+    protected ChatTitleService $titleService;
+
     protected bool $isNewChat = false;
 
     public function __construct($chatID, $text, $neural_name, $userID)
@@ -32,7 +34,6 @@ class ChatService
                 'name' => $chatTitle
             ]);
             $this->isNewChat = true;
-            Log::info('Created new chat with ID: ' . $this->chat->id . ', title: ' . $chatTitle);
         } else {
             // Ищем существующий чат
             $this->chat = Chat::find($chatID);
@@ -45,13 +46,11 @@ class ChatService
                     'name' => $chatTitle
                 ]);
                 $this->isNewChat = true;
-                Log::warning('Chat not found, created new chat with ID: ' . $this->chat->id);
             }
         }
-
         $this->text = $text;
-        $this->neural_name = $neural_name;
-        $this->temperature = $this->getTemperature($neural_name);
+        $this->neural = Neural::where('name', $neural_name)->first();
+        $this->temperature = $this->neural->temperature;
         $this->userID = $userID;
     }
 
@@ -62,7 +61,7 @@ class ChatService
             'role' => 'user'
         ]);
 
-        $countLastMessage = Neural::where('name', $this->neural_name)->value('countLastMessage');
+        $countLastMessage = Neural::where('name', $this->neural->name)->value('countLastMessage');
         $lastMessages = $this->chat->getLastMessages($countLastMessage)->push($currentMessage);
         $conversation = $lastMessages->map(function ($message) {
             return [
@@ -80,7 +79,7 @@ class ChatService
         // Вставляем системный промпт в начало конверсации
         array_unshift($conversation, $systemPrompt);
 
-        $response = Ollama::model($this->neural_name)->chat($conversation);
+        $response = Ollama::model($this->neural->name)->chat($conversation);
 
         $data = [ // Create current request and response from neural
             [
@@ -97,6 +96,8 @@ class ChatService
             ]
         ];
         ChatMessage::insert($data);
+
+        $this->chat->update(['lastMessage' => now()]);
 
         UserActivity::updateActivity(Auth::id());
 
@@ -115,7 +116,11 @@ class ChatService
      */
     private function getSystemPrompt(): string
     {
-        return "Ты - полезный AI-ассистент. Строго соблюдай следующие правила:
+        if(isset($this->neural->basePrompt)) {
+            return $this->neural->basePrompt;
+        } else
+            return
+            "Ты - полезный AI-ассистент. Строго соблюдай следующие правила:
         1. **Язык ответов**: Всегда отвечай на русском языке, если пользователь явно не запросил другой язык.
         2. **Форматирование Markdown**: Всегда используй Markdown-разметку для форматирования ответов:
            - Заголовки разных уровней (# ## ###)
@@ -136,11 +141,6 @@ class ChatService
            - Выделяй ключевые моменты жирным шрифтом
            - Для пошаговых инструкций используй нумерованные списки
         Следуй этим правилам во всех ответах.";
-    }
-
-    private function getTemperature($neural_name): int
-    {
-        return Neural::where('name', $neural_name)->value('temperature');
     }
 
     public function getChatId()

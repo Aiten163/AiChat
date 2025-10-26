@@ -1,3 +1,29 @@
+<!-- Модальное окно подтверждения удаления чата -->
+<div class="modal fade" id="deleteChatModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                    Подтверждение удаления
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-white mb-0">Вы уверены, что хотите удалить этот чат? Все сообщения будут безвозвратно удалены.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Отмена
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="bi bi-trash me-1"></i> Удалить чат
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container-fluid">
     <div class="row align-items-center">
         <div class="col d-flex align-items-center">
@@ -16,14 +42,12 @@
         <div class="col-auto">
             @auth
                 <div class="d-flex align-items-center gap-2 d-none d-md-flex">
-                    <!-- На десктопе показываем имя пользователя -->
                     <span class="text-white-50 fs-6">
                         <span class="text-white fw-medium">{{ Auth::user()->name }}</span>
                     </span>
 
                     <div class="vr bg-secondary" style="height: 20px;"></div>
 
-                    <!-- На десктопе оставляем кнопку выхода в хедере -->
                     <form action="{{ route('logout') }}" method="POST" class="d-inline m-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm border-0">
@@ -38,7 +62,6 @@
                     @endif
                 </div>
 
-                <!-- На мобильных показываем только иконку пользователя -->
                 <div class="d-flex align-items-center gap-1 d-md-none">
                     <span class="text-white-50 small">
                         <i class="bi bi-person-circle"></i>
@@ -54,7 +77,6 @@
     </div>
 </div>
 
-<!-- Модальное окно авторизации -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border border-secondary">

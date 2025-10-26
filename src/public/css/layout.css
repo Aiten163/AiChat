@@ -8,7 +8,7 @@ body {
     overflow: hidden;
 }
 
-/* Основной контейнер приложения */
+/* Основной контейнер приложения - ИСПРАВЛЕННЫЙ */
 #container {
     background-color: rgb(13, 17, 23);
     flex: 1;
@@ -16,23 +16,28 @@ body {
     flex-direction: column;
     padding: 0;
     margin-top: 76px; /* Отступ под хедер */
-    margin-bottom: 0; /* УБИРАЕМ нижний отступ, т.к. поле ввода теперь внутри контейнера */
-    height: calc(100vh - 76px); /* Только минус хедер */
+    height: calc(100vh - 76px); /* Фиксированная высота минус хедер */
     min-height: calc(100vh - 76px);
     overflow: hidden;
     position: relative;
+    box-sizing: border-box;
 }
 
 /* Убедимся, что контент не перекрывается */
 #history-container::after {
     content: '';
     display: block;
-    height: 10px;
+    height: 20px; /* Дополнительный отступ снизу */
+    flex-shrink: 0;
 }
 
 /* Хак для мобильного Safari */
 @supports (-webkit-touch-callout: none) {
     #history-container {
-        height: calc(100% - 10px);
+        height: calc(100% - 20px);
+    }
+
+    #container {
+        height: calc(100vh - 76px - env(safe-area-inset-bottom));
     }
 }

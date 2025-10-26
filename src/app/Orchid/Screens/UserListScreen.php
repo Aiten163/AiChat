@@ -64,7 +64,6 @@ class UserListScreen extends Screen
         return [
             UsersTable::class,
 
-            // Модальное окно для редактирования пользователя
             Layout::modal('editUser', Layout::rows([
                 Input::make('user.id')->type('hidden'),
                 Input::make('user.name')
@@ -129,31 +128,4 @@ class UserListScreen extends Screen
         }
     }
 
-    /**
-     * Reset statistics for all users
-     */
-    public function resetStatistics(): void
-    {
-        UserActivity::query()->update([
-            'number_messages' => 0,
-            'lastMessage' => null
-        ]);
-
-        Toast::info('Статистика сообщений сброшена для всех пользователей');
-    }
-
-    /**
-     * Reset statistics for specific user
-     */
-    public function resetUserStatistics(Request $request): void
-    {
-        $userId = $request->get('user_id');
-
-        UserActivity::where('user_id', $userId)->update([
-            'number_messages' => 0,
-            'lastMessage' => null
-        ]);
-
-        Toast::info('Статистика сообщений сброшена для пользователя');
-    }
 }

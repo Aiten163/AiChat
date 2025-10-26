@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('temperature')->default(50);
             $table->string('description', 150)->nullable();
             $table->unsignedTinyInteger('countLastMessage')->default(5);
+            $table->foreignId('base_prompt_id')->nullable()->constrained('base_prompts')->onDelete('set null');;
         });
     }
 

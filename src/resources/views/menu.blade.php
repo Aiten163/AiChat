@@ -23,17 +23,27 @@
     @endauth
 
     <div class="sidebar-header border-bottom border-secondary m-3">
-        <button class="btn btn-outline-light btn-sm w-100" onclick="createNewChat()">
+        <button class="btn btn-outline-light btn-sm w-100" id="new-chat-btn">
             <i class="bi bi-plus-circle me-1"></i> Новый чат
         </button>
     </div>
-
-    <ul class="chat-list" id="chat-list">
+    <ul class="chat-list text-white" id="chat-list">
         @foreach($chats as $chat)
-            <li class="chat-item @if($loop->first) active @endif" data-chat-id="{{ $chat->id }}">
-                <div class="chat-name text-truncate">{{ $chat->name }}</div>
-                <div class="chat-preview text-truncate text-small text-muted">
-                    {{ Str::limit($chat->last_message, 50) }}
+            <li class="chat-item @if($loop->first) active @endif" data-chat-id="{{ $chat['id'] }}">
+                <div class="chat-name-container">
+                    <span class="chat-name">{{ $chat['name'] }}</span>
+                    <input type="text" class="chat-name-edit" value="{{ $chat['name'] }}" style="display: none;">
+                </div>
+                <div class="chat-time">
+                    {{ \Carbon\Carbon::parse($chat['lastMessage'])->diffForHumans() }}
+                </div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn rename" title="Переименовать чат" data-chat-id="{{ $chat['id'] }}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="chat-action-btn delete" title="Удалить чат" data-chat-id="{{ $chat['id'] }}">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </div>
             </li>
         @endforeach

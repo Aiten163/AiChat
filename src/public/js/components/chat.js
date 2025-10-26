@@ -55,6 +55,9 @@ export class ChatManager {
         }
 
         this.loadChatHistory(this.currentChatId);
+
+        // ДОБАВЛЯЕМ ЭТУ СТРОКУ - инициализируем управление layout
+        this.initLayoutHeights();
     }
 
     getCurrentChatIdFromURL() {
@@ -196,10 +199,8 @@ export class ChatManager {
         // Применяем подсветку синтаксиса
         this.applySyntaxHighlighting();
 
-        // Скроллим вниз после рендера
-        setTimeout(() => {
-            this.scrollToBottom();
-        }, 100);
+        // ДОБАВЛЯЕМ ПЕРЕСЧЕТ LAYOUT
+        this.recalculateLayout();
 
         console.log('History rendered, messages count:', messages.length);
     }
@@ -240,23 +241,91 @@ export class ChatManager {
                 const header = document.createElement('div');
                 header.className = 'code-block-header';
                 header.innerHTML = `
-                    <span class="code-language">${language}</span>
-                    <button class="code-copy-button" data-code-index="${index}" title="Скопировать код">
-                        <i class="bi bi-clipboard"></i> Копировать
-                    </button>
-                `;
+                <span class="code-language">${language}</span>
+                <button class="code-copy-button" data-code-index="${index}" title="Скопировать код">
+                    <i class="bi bi-clipboard"></i>
+                    <span>Копировать</span>
+                </button>
+            `;
 
-                pre.insertBefore(header, codeBlock);
+                // Вставляем заголовок в начало pre блока
+                pre.insertBefore(header, pre.firstChild);
+
+                // Убедимся, что у pre правильные стили
+                pre.style.margin = '1em 0';
+                pre.style.borderRadius = '8px';
+                pre.style.overflow = 'hidden';
+                pre.style.border = '1px solid #30363d';
+                pre.style.background = '#0d1117';
             }
         });
 
         return tempDiv.innerHTML;
     }
-
+    // В методе getCodeLanguage обновляем логику определения языка
     getCodeLanguage(codeBlock) {
         const className = codeBlock.className || '';
+
+        // Ищем язык в классах
         const match = className.match(/language-(\w+)/);
-        return match ? match[1].toUpperCase() : 'CODE';
+        if (match) {
+            const lang = match[1].toLowerCase();
+
+            // Маппинг языков для красивого отображения
+            const languageMap = {
+                'js': 'JavaScript',
+                'javascript': 'JavaScript',
+                'ts': 'TypeScript',
+                'typescript': 'TypeScript',
+                'py': 'Python',
+                'python': 'Python',
+                'php': 'PHP',
+                'java': 'Java',
+                'cpp': 'C++',
+                'c': 'C',
+                'cs': 'C#',
+                'csharp': 'C#',
+                'html': 'HTML',
+                'xml': 'XML',
+                'css': 'CSS',
+                'scss': 'SCSS',
+                'sass': 'SASS',
+                'sql': 'SQL',
+                'bash': 'Bash',
+                'shell': 'Shell',
+                'sh': 'Shell',
+                'powershell': 'PowerShell',
+                'ps1': 'PowerShell',
+                'json': 'JSON',
+                'yaml': 'YAML',
+                'yml': 'YAML',
+                'md': 'Markdown',
+                'markdown': 'Markdown',
+                'dockerfile': 'Dockerfile',
+                'rust': 'Rust',
+                'go': 'Go',
+                'rb': 'Ruby',
+                'ruby': 'Ruby',
+                'swift': 'Swift',
+                'kotlin': 'Kotlin'
+            };
+
+            return languageMap[lang] || lang.toUpperCase();
+        }
+
+        // Пытаемся определить язык по содержимому
+        const content = codeBlock.textContent || '';
+        if (content.includes('<?php') || content.includes('$') && content.includes(';')) {
+            return 'PHP';
+        } else if (content.includes('function') && content.includes('{') && content.includes('}')) {
+            return 'JavaScript';
+        } else if (content.includes('def ') && content.includes(':')) {
+            return 'Python';
+        } else if (content.includes('Write-Host') || content.includes('Get-')) {
+            return 'PowerShell';
+        }
+
+        return 'CODE';
     }
 
     escapeAndFormatText(text) {
@@ -287,13 +356,19 @@ export class ChatManager {
     }
 
     bindCopyButtons() {
-        // Кнопки копирования для всего сообщения
+        // Кнопки копирования для всего сообщения - ИСПРАВЛЕННЫЙ
         const copyButtons = document.querySelectorAll('.copy-button');
         copyButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const textToCopy = button.getAttribute('data-text');
-                this.copyToClipboard(textToCopy, button);
+
+                // Вместо data-text атрибута, извлекаем текст из отрендеренного содержимого
+                const messageContent = button.closest('.message').querySelector('.message-content');
+                if (messageContent) {
+                    // Извлекаем чистый текст из HTML
+                    const textToCopy = this.extractTextFromHTML(messageContent.innerHTML);
+                    this.copyToClipboard(textToCopy, button);
+                }
             });
         });
 
@@ -303,13 +378,58 @@ export class ChatManager {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const pre = button.closest('pre');
-                const codeBlock = pre?.querySelector('code');
-                if (codeBlock) {
-                    const textToCopy = codeBlock.textContent || codeBlock.innerText;
-                    this.copyToClipboard(textToCopy, button);
+                if (pre) {
+                    const codeBlock = pre.querySelector('code');
+                    if (codeBlock) {
+                        const textToCopy = codeBlock.textContent || codeBlock.innerText;
+                        this.copyToClipboard(textToCopy.trim(), button);
+                    }
                 }
             });
         });
+    }
+
+// Добавляем вспомогательный метод для извлечения текста из HTML
+    extractTextFromHTML(html) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Рекурсивно извлекаем текст из всех узлов
+        const extractText = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                return node.textContent || '';
+            }
+
+            if (node.nodeType === Node.ELEMENT_NODE) {
+                // Для блоков кода сохраняем форматирование
+                if (node.tagName === 'PRE' || node.tagName === 'CODE') {
+                    return '\n```\n' + (node.textContent || '') + '\n```\n';
+                }
+
+                // Для других элементов обрабатываем детей
+                let text = '';
+                for (const child of node.childNodes) {
+                    text += extractText(child);
+                }
+
+                // Добавляем переносы строк для блочных элементов
+                const blockElements = ['DIV', 'P', 'BR', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
+                if (blockElements.includes(node.tagName)) {
+                    text += '\n';
+                }
+
+                return text;
+            }
+
+            return '';
+        };
+
+        let text = extractText(tempDiv);
+
+        // Очищаем лишние переносы строк
+        text = text.replace(/\n{3,}/g, '\n\n').trim();
+
+        return text;
     }
 
     async copyToClipboard(text, button) {
@@ -393,14 +513,11 @@ export class ChatManager {
             this.applySyntaxHighlighting();
         }, 0);
 
-        // Скроллим вниз
-        setTimeout(() => {
-            this.scrollToBottom();
-        }, 50);
+        // ДОБАВЛЯЕМ ВЫЗОВ ПЕРЕСЧЕТА LAYOUT
+        this.recalculateLayout();
 
         console.log('Message added:', { type, text: messageText.substring(0, 50) + '...' });
     }
-
     convertToString(value) {
         if (value === null || value === undefined) {
             return '';
@@ -472,4 +589,94 @@ export class ChatManager {
             `;
         }
     }
+    showError(message) {
+        const historyContainer = document.getElementById('history-container');
+        if (historyContainer) {
+            const errorMessage = this.convertToString(message);
+            historyContainer.innerHTML = `
+                <div class="text-center text-danger p-4">
+                    ${escapeHtml(errorMessage)}
+                </div>
+            `;
+        }
+    }
+
+    // === ДОБАВЛЯЕМ НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ LAYOUT ===
+
+    /**
+     * Инициализация управления высотами layout
+     */
+    initLayoutHeights() {
+        // Вызываем сразу при инициализации
+        this.updateLayoutHeights();
+
+        // Добавляем обработчики событий
+        window.addEventListener('resize', () => {
+            setTimeout(() => this.updateLayoutHeights(), 100);
+        });
+
+        // Также обновляем при полной загрузке страницы
+        window.addEventListener('load', () => {
+            setTimeout(() => this.updateLayoutHeights(), 200);
+        });
+
+        // Обновляем при изменении содержимого
+        const observer = new MutationObserver(() => {
+            this.updateLayoutHeights();
+        });
+
+        const historyContainer = document.getElementById('history-container');
+        if (historyContainer) {
+            observer.observe(historyContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
+    }
+
+    /**
+     * Обновление высот контейнеров для предотвращения перекрытия
+     */
+    updateLayoutHeights() {
+        const header = document.querySelector('header');
+        const container = document.getElementById('container');
+        const historyContainer = document.getElementById('history-container');
+        const inputArea = document.getElementById('input-area');
+
+        if (!header || !container || !historyContainer || !inputArea) {
+            console.log('Layout elements not found, retrying...');
+            return;
+        }
+
+        const headerHeight = header.offsetHeight;
+        const inputAreaHeight = inputArea.offsetHeight;
+
+        console.log('Updating layout heights:', {
+            headerHeight,
+            inputAreaHeight
+        });
+
+        // Устанавливаем высоту основного контейнера
+        container.style.height = `calc(100vh - ${headerHeight}px)`;
+        container.style.minHeight = `calc(100vh - ${headerHeight}px)`;
+
+        // Устанавливаем высоту контейнера истории
+        historyContainer.style.height = `calc(100% - ${inputAreaHeight}px)`;
+        historyContainer.style.maxHeight = `calc(100% - ${inputAreaHeight}px)`;
+
+        // Принудительно применяем flex layout
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+    }
+
+    /**
+     * Пересчет layout после добавления сообщения
+     */
+    recalculateLayout() {
+        setTimeout(() => {
+            this.updateLayoutHeights();
+            this.scrollToBottom();
+        }, 50);
+    }
+
 }

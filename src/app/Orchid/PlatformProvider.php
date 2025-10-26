@@ -51,7 +51,9 @@ class PlatformProvider extends OrchidServiceProvider
                     Menu::make('Сообщения')
                         ->icon('bubbles')
                         ->route('platform.analytics.messages'),
-                ])
+                ]),
+            Menu::make('Базовые промпты')
+                ->route('platform.base-prompts'),
         ];
     }
 

@@ -38,13 +38,11 @@
 @auth
     <div id='container' class="container-fluid px-0">
         <div id='history-container' class="messages-container">
-            <!-- История сообщений -->
         </div>
 
         <div id='input-area' class="bg-dark-custom border-top border-secondary">
             <div class="container-fluid">
                 <div id='input-wrapper' class="bg-darker rounded-3 p-2 p-md-3">
-                    <!-- Верхняя строка - поле ввода -->
                     <div class="input-top-row">
                         <div id="text-request" class="flex-grow-1 w-100">
                             <textarea
@@ -56,7 +54,6 @@
                         </div>
                     </div>
 
-                    <!-- Нижняя строка - выбор модели и кнопка отправки -->
                     <div class="input-bottom-row">
                         <div id='input-model' class="flex-shrink-0">
                             <label class="mb-0">

@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('chats', function (Blueprint $table) {
+        Schema::create('base_prompts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->string('name',80)->nullable();
-            $table->boolean('show')->default(true);
-            $table->dateTime('lastMessage')->nullable();
+            $table->text('prompt')->nullable();
+            $table->string('name')->nullable();
+
         });
     }
 
@@ -25,6 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('chats');
+        Schema::dropIfExists('base_prompts');
     }
+
 };

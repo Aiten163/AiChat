@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Neural;
+use App\Models\Base_prompt; // Добавляем модель Base_prompt
 use App\Orchid\Layouts\Neural\NeuralTable;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
@@ -31,8 +32,12 @@ class NeuralScreen extends Screen
     public function query(): iterable
     {
         return [
-            'neurals' => Neural::filters()->defaultSort('id')->paginate(),
+            'neurals' => Neural::with('basePrompt') // Добавляем eager loading
+            ->filters()
+                ->defaultSort('id')
+                ->paginate(),
             'ollama_available' => $this->ollamaAvailable,
+            'base_prompts' => Base_prompt::all(),
         ];
     }
 
@@ -103,12 +108,20 @@ class NeuralScreen extends Screen
                     ->value(5)
                     ->help('Сколько предыдущих сообщений учитывать в контексте'),
 
+                // Добавляем селектор для выбора basePrompt
+                Select::make('base_prompt_id')
+                    ->options($this->getBasePromptsOptions())
+                    ->title('Базовый промт')
+                    ->help('Выберите профиль промта для этой нейросети')
+                    ->empty('Не выбран')
+                    ->value(null),
+
                 TextArea::make('description')
                     ->title('Описание')
                     ->placeholder('Краткое описание нейросети')
                     ->rows(3)
                     ->maxlength(150)
-                    ->help('Максимум 150 симвонов'),
+                    ->help('Максимум 150 символов'),
 
             ]))->title("Добавить нейросеть")->applyButton('Добавить');
 
@@ -142,12 +155,19 @@ class NeuralScreen extends Screen
                     ->min(1)
                     ->help('Сколько предыдущих сообщений учитывать в контексте'),
 
+                // Добавляем селектор для выбора basePrompt при редактировании
+                Select::make('neural.base_prompt_id')
+                    ->options($this->getBasePromptsOptions())
+                    ->title('Базовый промт')
+                    ->help('Выберите профиль промта для этой нейросети')
+                    ->empty('Не выбран'),
+
                 TextArea::make('neural.description')
                     ->title('Описание')
                     ->placeholder('Краткое описание нейросети')
                     ->rows(3)
                     ->maxlength(150)
-                    ->help('Максимум 150 симвонов'),
+                    ->help('Максимум 150 символов'),
 
             ]))->async('asyncGetNeural')->title('Редактировать нейросеть')->applyButton('Сохранить');
         } else {
@@ -198,6 +218,23 @@ class NeuralScreen extends Screen
         }
     }
 
+    /**
+     * Получить список базовых промтов для селектора
+     */
+    private function getBasePromptsOptions(): array
+    {
+        try {
+            return Base_prompt::all()
+                ->mapWithKeys(function ($prompt) {
+                    return [$prompt->id => $prompt->name ?: "Промт #{$prompt->id}"];
+                })
+                ->toArray();
+        } catch (Exception $e) {
+            Toast::error('Ошибка загрузки списка промтов');
+            return [];
+        }
+    }
+
     public function asyncGetNeural(Neural $neural): array
     {
         return [
@@ -213,11 +250,12 @@ class NeuralScreen extends Screen
         }
 
         $request->validate([
-            'neural.name' => 'required|string|max:40',
+            'neural.name' => 'string|max:40',
             'neural.show_name' => 'required|string|max:40',
             'neural.temperature' => 'required|integer|min:0|max:100',
             'neural.countLastMessage' => 'required|integer|min:1|max:20',
-            'neural.description' => 'required|string|max:150',
+            'neural.description' => 'nullable|string|max:150',
+            'neural.base_prompt_id' => 'nullable|exists:base_prompts,id',
         ]);
 
         Neural::find($request->input('neural.id'))->update($request->neural);
@@ -248,6 +286,7 @@ class NeuralScreen extends Screen
             'temperature' => 'integer|min:0|max:100',
             'countLastMessage' => 'integer|min:1',
             'description' => 'string|nullable|max:150',
+            'base_prompt_id' => 'nullable|exists:base_prompts,id',
         ]);
 
         Neural::create($request->all());

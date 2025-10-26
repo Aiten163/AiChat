@@ -1,14 +1,14 @@
-/* ===== ПАНЕЛЬ ВВОДА СООБЩЕНИЙ ===== */
+/* ===== ПАНЕЛЬ ВВОДА СООБЩЕНИЙ - ИСПРАВЛЕННЫЙ ===== */
 #input-area {
     background-color: rgb(13, 17, 23);
     border-top: 1px solid #30363d;
-    position: fixed;
+    position: relative; /* Меняем на relative */
     width: 100%;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1040;
+    z-index: 2;
     padding: 0.5rem;
+    box-sizing: border-box;
+    flex-shrink: 0; /* Не сжимается */
+    min-height: 80px; /* Минимальная высота */
 }
 
 /* Контейнер для элементов ввода */
@@ -21,6 +21,7 @@
     flex-direction: column;
     gap: 0.75rem;
     max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* ===== ВЕРХНЯЯ СТРОКА - ПОЛЕ ВВОДА ===== */
@@ -46,7 +47,7 @@
     resize: none;
     width: 100%;
     min-height: 40px;
-    max-height: 200px; /* УВЕЛИЧИЛИ с 120px до 200px */
+    max-height: 120px;
     padding: 0.5rem;
     font-size: 1rem;
     line-height: 1.4;

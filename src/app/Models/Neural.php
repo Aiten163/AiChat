@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
@@ -20,6 +21,7 @@ class Neural extends Model
         'temperature',
         'description',
         'countLastMessage',
+        'base_prompt_id',
     ];
 
     protected $casts = [
@@ -48,4 +50,9 @@ class Neural extends Model
         'temperature',
         'countLastMessage',
     ];
+
+    public function basePrompt()
+    {
+        return $this->belongsTo(Base_prompt::class, 'base_prompt_id');
+    }
 }

@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Log;
 class HomeController extends Controller
 {
     public function index() {
-        $chats = Chat::where('user_id', auth()->id())
+        $chats = Chat::where(['user_id' => auth()->id(), 'show' => true])
             ->orderBy('id', 'desc')
-            ->get(['id', 'name']);
+            ->get(['id', 'name','lastMessage']);
 
         $neurals = Neural::get(['show_name', 'name']);
 
@@ -26,9 +26,7 @@ class HomeController extends Controller
             'chat_id' => 'required|integer'
         ]);
 
-        // Проверяем, что чат принадлежит пользователю
-        $chat = Chat::where('id', $request->chat_id)
-            ->where('user_id', auth()->id())
+        $chat = Chat::where(['id' => $request->chat_id, "show" => true, 'user_id' => auth()->id()])
             ->firstOrFail();
 
         $messages = ChatMessage::where('chat_id', $request->chat_id)

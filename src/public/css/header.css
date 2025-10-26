@@ -2,12 +2,12 @@
 header {
     background-color: rgb(13, 17, 23) !important;
     border-bottom: 1px solid #30363d;
-    z-index: 1050 !important; /* Убедимся, что хедер выше всего */
+    z-index: 1050 !important;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 76px; /* Фиксированная высота хедера */
+    height: 76px;
 }
 
 /* ===== САЙДБАР И МЕНЮ ===== */
@@ -56,12 +56,14 @@ header {
 }
 
 .chat-item {
-    padding: 12px 20px;
+    padding: 12px 15px;
     border-bottom: 1px solid #333;
     cursor: pointer;
     transition: background-color 0.2s;
     color: #e0e0e0;
     background-color: #212529;
+    position: relative;
+    min-height: 60px;
 }
 
 .chat-item:hover {
@@ -69,25 +71,120 @@ header {
 }
 
 .chat-item.active {
-    background-color: #0d6efd;
+    background-color: #5f87f1;
     color: white;
 }
 
-.chat-item .chat-name {
-    font-weight: 500;
+.chat-name-container {
+    position: relative;
     margin-bottom: 4px;
 }
 
-.chat-item .chat-preview {
-    font-size: 0.85rem;
-    color: #aaa;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.chat-name {
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: default;
+    display: block;
+    line-height: 1.4;
+}
+
+.chat-time {
+    font-size: 0.7rem;
+    color: #d4d4ff;
+    margin-top: 2px;
+}
+
+/* Редактирование названия чата */
+.chat-name-edit {
+    display: none;
+    width: calc(100% - 60px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #0d6efd;
+    border-radius: 4px;
+    color: #e6edf3;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.chat-name-edit:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+}
+
+.chat-item.editing {
+    background-color: #2a2a2a;
+    z-index: 5;
+}
+
+.chat-item.editing .chat-name {
+    display: none;
+}
+
+.chat-item.editing .chat-name-edit {
+    display: block;
+}
+
+.chat-item.editing .chat-actions {
+    display: none;
+}
+
+/* Кнопки действий чата */
+.chat-actions {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 15;
+}
+
+.chat-item:hover .chat-actions {
+    opacity: 1;
+}
+
+.chat-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #e6edf3;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.chat-action-btn.delete:hover {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #ff6b7a;
+}
+
+.chat-action-btn.rename:hover {
+    background: rgba(13, 110, 253, 0.2);
+    border-color: rgba(13, 110, 253, 0.4);
+    color: #6ea8fe;
 }
 
 /* Информация пользователя в сайдбаре */
 .user-info-sidebar {
+    display: none;
     padding: 15px 20px;
     border-bottom: 1px solid #444;
     background-color: #2a2a2a;
@@ -97,12 +194,72 @@ header {
     font-weight: 500;
     color: white;
     margin-bottom: 8px;
+    font-size: 1rem;
 }
 
 .user-actions-sidebar {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+.sidebar-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #444;
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .user-info-sidebar {
+        display: block;
+    }
+
+    #sidebar {
+        width: 85%;
+        max-width: none;
+        padding-top: 60px;
+    }
+
+    .chat-item {
+        min-height: 55px;
+        padding: 10px 12px;
+    }
+
+    .chat-name-edit {
+        width: calc(100% - 50px);
+    }
+
+    .chat-actions {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 4px;
+        padding: 2px;
+    }
+
+    .chat-time {
+        font-size: 0.65rem;
+    }
+
+    .chat-action-btn {
+        width: 22px;
+        height: 22px;
+        font-size: 0.65rem;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 576px) {
+    #sidebar {
+        width: 90%;
+    }
+
+    .chat-name {
+        font-size: 0.9rem;
+    }
+
+    .chat-time {
+        font-size: 0.65rem;
+    }
 }
 
 /* ===== МОДАЛЬНЫЕ ОКНА ===== */
@@ -114,7 +271,6 @@ header {
     z-index: 1050 !important;
 }
 
-/* Убедимся, что модальное окно поверх сайдбара */
 #loginModal.modal {
     z-index: 1060 !important;
 }
@@ -145,4 +301,37 @@ body.modal-open.blocked {
 
 .modal-backdrop.blocking {
     display: none !important;
+}
+/* ===== МОДАЛЬНЫЕ ОКНА ===== */
+.modal-backdrop {
+    z-index: 1045 !important;
+}
+
+#deleteChatModal {
+    z-index: 1060 !important;
+}
+
+#deleteChatModal .modal-content {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+}
+
+#deleteChatModal .modal-header {
+    border-bottom: 1px solid #444;
+    padding: 1rem 1.5rem;
+}
+
+#deleteChatModal .modal-body {
+    padding: 1.5rem;
+    color: #e6edf3;
+}
+
+#deleteChatModal .modal-footer {
+    border-top: 1px solid #444;
+    padding: 1rem 1.5rem;
+}
+
+#deleteChatModal .btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
 }
