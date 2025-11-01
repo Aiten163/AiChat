@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Orchid\Screens\NeuralFilters\NeuralFilterEditScreen;
+use App\Orchid\Screens\NeuralFilters\NeuralFilterListScreen;
 use Illuminate\Support\Facades\Route;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\UserListScreen;
@@ -30,4 +32,13 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
 
     Route::post('base-prompts/update', [BasePromptScreen::class, 'update'])
         ->name('platform.base-prompts.update');
+
+    Route::prefix('neural-filters.')->group(function () {
+        Route::screen('', NeuralFilterListScreen::class)
+            ->name('platform.neural-filters.list');
+        Route::screen('create', NeuralFilterEditScreen::class)
+            ->name('platform.neural-filters.create');
+        Route::screen('{filter}/edit', NeuralFilterEditScreen::class)
+            ->name('platform.neural-filters.edit');
+    });
 });

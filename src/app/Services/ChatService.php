@@ -18,12 +18,18 @@ class ChatService
     protected int $userID;
     protected int $temperature = 50;
     protected ChatTitleService $titleService;
+    protected Ollama $OllamaModel;
 
     protected bool $isNewChat = false;
 
     public function __construct($chatID, $text, $neural_name, $userID)
     {
         $this->titleService = new ChatTitleService();
+        $this->text = $text;
+        $this->userID = $userID;
+        $this->neural = Neural::where('name', $neural_name)->first();
+        $this->temperature = $this->neural->temperature;
+        $this->OllamaModel = Ollama::model($this->neural->name);
 
         // Если chatID = 'new-chat' или пустой, создаем новый чат
         if (!$chatID || $chatID === 'new-chat') {
@@ -48,10 +54,6 @@ class ChatService
                 $this->isNewChat = true;
             }
         }
-        $this->text = $text;
-        $this->neural = Neural::where('name', $neural_name)->first();
-        $this->temperature = $this->neural->temperature;
-        $this->userID = $userID;
     }
 
     public function getResponse()
@@ -79,7 +81,11 @@ class ChatService
         // Вставляем системный промпт в начало конверсации
         array_unshift($conversation, $systemPrompt);
 
-        $response = Ollama::model($this->neural->name)->chat($conversation);
+        $response = $this->OllamaModel
+            ->options([
+                'temperature' => $this->temperature,
+            ])
+            ->chat($conversation);
 
         $data = [ // Create current request and response from neural
             [

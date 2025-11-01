@@ -34,26 +34,34 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
-            Menu::make('Нейросети')
-                ->icon('bs.door-closed')
-                ->route('platform.neurals'),
+            Menu::make('Настройка нейросетей')
+                ->icon('bs.gear')
+                ->list([
+                    Menu::make('Нейросети')
+                        ->icon('bs.robot')
+                        ->route('platform.neurals'),
 
+                    Menu::make('Фильтры')
+                        ->icon('bs.filter-left')
+                        ->route('platform.neural-filters.list'),
+                    Menu::make('Базовые промпты')
+                        ->icon('bs.file-earmark-text-fill')
+                        ->route('platform.base-prompts'),
+                ]),
             Menu::make(__('Пользователи'))
                 ->icon('bs.people')
                 ->route('platform.users.list'),
 
             Menu::make(__('История сообщений'))
-                ->icon('bs.bubbles')
+                ->icon('bs.chat')
                 ->route('platform.messages'),
             Menu::make('Аналитика')
-                ->icon('chart')
+                ->icon('bs.graph-up')
                 ->list([
                     Menu::make('Сообщения')
-                        ->icon('bubbles')
+                        ->icon('bs.chat-left')
                         ->route('platform.analytics.messages'),
                 ]),
-            Menu::make('Базовые промпты')
-                ->route('platform.base-prompts'),
         ];
     }
 

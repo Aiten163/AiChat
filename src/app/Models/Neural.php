@@ -51,6 +51,11 @@ class Neural extends Model
         'countLastMessage',
     ];
 
+    public function neuralFilter()
+    {
+        return $this->hasMany(NeuralFilter::class);
+    }
+
     public function basePrompt()
     {
         return $this->belongsTo(Base_prompt::class, 'base_prompt_id');
