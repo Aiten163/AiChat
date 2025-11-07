@@ -79,5 +79,4 @@ volumes:
 
 networks:
   faberlicai-network:
-    external: true
     driver: bridge
