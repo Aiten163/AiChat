@@ -13,12 +13,13 @@ class ProhibitedMessageGet extends Notification
 {
     use Queueable;
 
+    private string $message;
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct($data)
     {
-        //
+        $this->message = 123;
     }
 
     /**
