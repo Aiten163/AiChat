@@ -4,8 +4,8 @@ namespace App\Services\FilterServices;
 
 class NeuralFilterService
 {
-    public function __construct()
+    public static function filter()
     {
-
+        
     }
 }

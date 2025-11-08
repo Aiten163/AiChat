@@ -82,26 +82,30 @@ class NeuralFilterEditScreen extends Screen
     public function save(NeuralFilter $filter, Request $request)
     {
         $data = $request->get('filter');
+        $neuralId = $data['neural_id'] ?? $filter->neural_id;
 
-        // Деактивируем другие фильтры ТОЛЬКО для этой же нейросети при активации текущего
-        if (isset($data['activePrompt']) && $data['activePrompt']) {
-            NeuralFilter::where('neural_id', $data['neural_id'])
-                ->where('id', '!=', $filter->id)
-                ->update(['activePrompt' => false]);
+        // Проверяем, хочет ли пользователь активировать хотя бы один тип фильтра
+        $wantsToActivate = (
+            (isset($data['activePrompt']) && $data['activePrompt']) ||
+            (isset($data['activeSimple']) && $data['activeSimple'])
+        );
+
+        if ($wantsToActivate) {
+            // Деактивируем ВСЕ фильтры для этой нейросети (и промпт, и простой)
+            NeuralFilter::where('neural_id', $neuralId)
+                ->update([
+                    'activePrompt' => false,
+                    'activeSimple' => false
+                ]);
         }
 
-        if (isset($data['activeSimple']) && $data['activeSimple']) {
-            NeuralFilter::where('neural_id', $data['neural_id'])
-                ->where('id', '!=', $filter->id)
-                ->update(['activeSimple' => false]);
-        }
-
+        // Сохраняем текущий фильтр с новыми значениями
         $filter->fill($data)->save();
 
-        Alert::success('Фильтр успешно сохранен.');
-
+        Alert::success('Фильтр успешно сохранён.');
         return redirect()->route('platform.neural-filters.list');
     }
+
 
     public function remove(NeuralFilter $filter)
     {

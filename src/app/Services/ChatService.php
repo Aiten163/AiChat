@@ -56,7 +56,7 @@ class ChatService
         }
     }
 
-    public function getResponse()
+    public function getResponse(): array
     {
         $currentMessage = collect([
             'message' => $this->text,
@@ -148,7 +148,10 @@ class ChatService
            - Для пошаговых инструкций используй нумерованные списки
         Следуй этим правилам во всех ответах.";
     }
-
+    private function getProhibitedResponse(): string
+    {
+        return "Данный запрос нарушает правила информационной безопасности";
+    }
     public function getChatId()
     {
         return $this->chat->id;
