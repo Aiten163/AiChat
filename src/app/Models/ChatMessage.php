@@ -13,13 +13,14 @@ class ChatMessage extends Model
 {
     use HasFactory, Filterable;
 
-    public $timestamps = ["created_at"];
+    public $timestamps = false;
     protected $table = 'chatMessages';
 
     protected $fillable = [
         'role',
         'message',
         'chat_id',
+        'created_at'
     ];
 
     protected $casts = [

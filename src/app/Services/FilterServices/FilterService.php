@@ -7,32 +7,31 @@ use Illuminate\Support\Facades\Log;
 
 class FilterService
 {
-    private NeuralFilter $neuralFilter;
+    private NeuralFilter | null  $neuralFilter = null;
+
     public function __construct($neural)
     {
-        $this->neuralFilter = NeuralFilter::where('activeSimple', '=', 1)->orWhere('activePrompt', '=', 1)->first();
+        $this->neuralFilter = NeuralFilter::where('activeSimple', '=', 1)
+            ->orWhere('activePrompt', '=', 1)
+            ->with('neural')
+            ->first();
     }
 
-    public function choiceFilter($filter, $text): bool
+    public function filter($text): bool
     {
-        switch ($filter) {
-            case 'simple':
-            {
-                $result = SimpleFilterService::filter();
-                break;
-            }
-            case 'neural':
-            {
-                $result = NeuralFilterService::filter();
-                break;
-            }
-            default:
-            {
-                $result = false;
-                Log::error('Undefined filter: ' . $filter);
-                break;
+        if ($this->neuralFilter === null) {
+            return true;
+        }
+        if ($this->neuralFilter->activeSimple) {
+            if (!SimpleFilterService::filter($text, $this->neuralFilter->simpleFilter)) {
+                return false;
+            };
+        }
+        if ($this->neuralFilter->activePrompt) {
+            if (!NeuralFilterService::filter($text, $this->neuralFilter->simpleFilter, $this->neuralFilter->neural->name)) {
+                return false;
             }
         }
-        return $result;
+        return true;
     }
 }

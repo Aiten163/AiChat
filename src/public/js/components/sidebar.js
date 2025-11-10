@@ -188,7 +188,6 @@ export class Sidebar {
             }
 
         } catch (error) {
-            console.error('Ошибка переименования чата:', error);
             this.cancelRenamingChat();
         }
     }
@@ -214,7 +213,6 @@ export class Sidebar {
         }
 
         try {
-            console.log('Sending rename request for chat:', this.currentEditChatId);
 
             const response = await fetch(`/chats/${this.currentEditChatId}/rename`, {
                 method: 'POST',
@@ -228,16 +226,13 @@ export class Sidebar {
                 })
             });
 
-            console.log('Rename response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Rename error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
-            console.log('Rename result:', result);
 
             if (result.success) {
                 chatItem.querySelector('.chat-name').textContent = result.new_name;
@@ -247,7 +242,6 @@ export class Sidebar {
             }
 
         } catch (error) {
-            console.error('Ошибка переименования чата:', error);
             this.cancelRenamingChat();
         }
     }
@@ -289,7 +283,6 @@ export class Sidebar {
         }
 
         try {
-            console.log('Sending delete request for chat:', chatId);
 
             const response = await fetch(`/chats/${chatId}`, {
                 method: 'DELETE',
@@ -299,16 +292,13 @@ export class Sidebar {
                 }
             });
 
-            console.log('Delete response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Delete error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
-            console.log('Delete result:', result);
 
             if (result.success) {
                 const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
@@ -322,7 +312,6 @@ export class Sidebar {
             }
 
         } catch (error) {
-            console.error('Ошибка удаления чата:', error);
         }
     }
     async confirmDeleteChat() {
@@ -366,7 +355,6 @@ export class Sidebar {
             }
 
         } catch (error) {
-            console.error('Ошибка удаления чата:', error);
             this.showErrorNotification('Ошибка при удалении чата');
 
             // Закрываем модалку в случае ошибки
@@ -416,7 +404,6 @@ export class Sidebar {
 
     markCurrentChat() {
         const currentChatId = this.chatManager.getCurrentChatIdFromURL();
-        console.log('Marking current chat:', currentChatId);
 
         const chatItems = document.querySelectorAll('.chat-item');
         chatItems.forEach(item => {
@@ -428,7 +415,6 @@ export class Sidebar {
                 const chatId = item.getAttribute('data-chat-id');
                 if (chatId == currentChatId) {
                     item.classList.add('active');
-                    console.log('Marked chat as active:', chatId);
                 }
             });
         }
@@ -465,8 +451,6 @@ export class Sidebar {
 
     bindChatItems() {
         const chatItems = document.querySelectorAll('.chat-item');
-        console.log('Found chat items:', chatItems.length);
-
         chatItems.forEach(item => {
             const chatId = item.getAttribute('data-chat-id');
 
@@ -477,7 +461,6 @@ export class Sidebar {
 
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Chat item clicked:', chatId);
                 this.selectChat(item);
                 this.closeSidebar();
             });
@@ -495,12 +478,10 @@ export class Sidebar {
 
     selectChat(chatItem) {
         const chatId = chatItem.getAttribute('data-chat-id');
-        console.log('Selected chat:', chatId);
 
         this.chatManager.setCurrentChatId(chatId);
         const newUrl = '/' + chatId;
         history.pushState({ chatId }, '', newUrl);
-        console.log('URL updated to:', newUrl);
 
         this.updateActiveChat(chatItem);
         this.chatManager.loadChatHistory(chatId);
@@ -524,25 +505,22 @@ export class Sidebar {
             return;
         }
 
-        console.log('Создание нового чата в UI');
         const tempChatId = 'new-chat';
         const newUrl = '/' + tempChatId;
         history.pushState({ chatId: tempChatId }, '', newUrl);
 
         this.chatManager.showEmptyState();
         this.chatManager.setCurrentChatId(tempChatId);
-        console.log('Новый чат создан в UI с временным ID:', tempChatId);
 
         this.markCurrentChat();
         return tempChatId;
     }
 
     updateTempChatToServerChat(tempChatId, serverChatId, chatName = 'Новый чат') {
-        console.log('Updating temp chat:', tempChatId, 'to server chat:', serverChatId, 'with name:', chatName);
 
         const chatList = document.getElementById('chat-list');
         if (!chatList) {
-            console.error('Chat list not found');
+
             return;
         }
 
@@ -580,6 +558,5 @@ export class Sidebar {
 
         const newUrl = '/' + serverChatId;
         history.replaceState({ chatId: serverChatId }, '', newUrl);
-        console.log('Temp chat updated to server chat:', serverChatId);
     }
 }

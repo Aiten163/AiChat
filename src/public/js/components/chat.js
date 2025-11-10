@@ -3,23 +3,58 @@ import { escapeHtml } from '../utils/helpers.js';
 export class ChatManager {
     constructor() {
         this.currentChatId = this.getCurrentChatIdFromURL();
-        console.log('Initial current chat ID:', this.currentChatId);
+        this.highlightedElements = new Set(); // Трекер подсвеченных элементов
 
-        // Инициализируем Marked и Highlight.js
         this.initMarkdownRenderer();
-
         this.init();
+    }
+    resetHighlighting() {
+        if (typeof hljs === 'undefined') return;
+
+        // Сбрасываем подсветку со всех зарегистрированных элементов
+        this.highlightedElements.forEach(element => {
+            if (element && element.parentNode) {
+                element.removeAttribute('data-highlighted');
+            }
+        });
+        this.highlightedElements.clear();
+    }
+
+    /**
+     * Безопасная подсветка синтаксиса
+     */
+    applySyntaxHighlighting() {
+        if (typeof hljs === 'undefined') {
+            return;
+        }
+
+        // Сначала сбрасываем предыдущую подсветку
+        this.resetHighlighting();
+
+        // Находим все блоки кода, которые еще не подсвечены
+        const codeBlocks = document.querySelectorAll('pre code:not([data-highlighted])');
+
+        codeBlocks.forEach((block) => {
+            try {
+                // Помечаем блок как подсвеченный перед обработкой
+                block.setAttribute('data-highlighted', 'true');
+                this.highlightedElements.add(block);
+
+                hljs.highlightElement(block);
+            } catch (error) {
+                console.warn('Highlight error:', error);
+                block.removeAttribute('data-highlighted');
+            }
+        });
     }
 
     initMarkdownRenderer() {
         // Проверяем, что библиотеки загружены
         if (typeof marked === 'undefined') {
-            console.error('Marked.js not loaded');
             return;
         }
 
         if (typeof hljs === 'undefined') {
-            console.error('Highlight.js not loaded');
             return;
         }
 
@@ -30,7 +65,6 @@ export class ChatManager {
                     try {
                         return hljs.highlight(code, { language: lang }).value;
                     } catch (err) {
-                        console.warn(`Highlight.js error for language ${lang}:`, err);
                     }
                 }
                 return hljs.highlightAuto(code).value;
@@ -41,15 +75,14 @@ export class ChatManager {
         });
     }
 
+
     init() {
         if (!this.currentChatId || this.currentChatId === '/') {
-            console.log('Root path, showing empty state');
             this.showEmptyState();
             return;
         }
 
         if (this.currentChatId === 'new-chat') {
-            console.log('New chat, showing empty state');
             this.showEmptyState();
             return;
         }
@@ -59,19 +92,18 @@ export class ChatManager {
         // ДОБАВЛЯЕМ ЭТУ СТРОКУ - инициализируем управление layout
         this.initLayoutHeights();
     }
-
+    updateMessageContent(messageElement, content) {
+        const contentElement = messageElement.querySelector('.message-content');
+        if (contentElement) {
+            contentElement.innerHTML = this.formatMessage(content);
+        }
+        this.scrollToBottom();
+    }
     getCurrentChatIdFromURL() {
         const path = window.location.pathname;
-        console.log('Current path:', path);
-
-        if (path === '/' || path === '') {
-            console.log('Root path, no chat ID');
-            return null;
-        }
 
         const pathParts = path.replace(/^\/|\/$/g, '').split('/');
         const chatId = pathParts[pathParts.length - 1];
-        console.log('Extracted chat ID:', chatId);
 
         return chatId || null;
     }
@@ -79,7 +111,6 @@ export class ChatManager {
     showEmptyState() {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) {
-            console.error('History container not found');
             return;
         }
 
@@ -95,17 +126,14 @@ export class ChatManager {
 
     loadChatHistory(chatId = null) {
         const targetChatId = chatId || this.currentChatId;
-        console.log('Loading history for chat ID:', targetChatId);
 
         if (!targetChatId || targetChatId === 'new-chat') {
-            console.log('New chat or no chat ID, showing empty state');
             this.showEmptyState();
             return;
         }
 
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) {
-            console.error('History container not found');
             return;
         }
 
@@ -120,20 +148,16 @@ export class ChatManager {
             }
         })
             .then(response => {
-                console.log('Response status:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(messages => {
-                console.log('Loaded messages:', messages);
                 this.renderChatHistory(messages);
                 this.currentChatId = targetChatId;
-                console.log('Current chat ID updated to:', this.currentChatId);
             })
             .catch(error => {
-                console.error('Ошибка загрузки истории:', error);
                 historyContainer.innerHTML = `
                 <div class="text-center text-danger p-4">
                     Ошибка загрузки истории чата: ${error.message}
@@ -145,12 +169,10 @@ export class ChatManager {
     renderChatHistory(messages) {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) {
-            console.error('History container not found');
             return;
         }
 
         if (!Array.isArray(messages)) {
-            console.error('Ожидался массив сообщений, получено:', messages);
             historyContainer.innerHTML = `<div class="text-center text-warning p-4">Неверный формат данных</div>`;
             return;
         }
@@ -163,12 +185,9 @@ export class ChatManager {
         let historyHTML = '';
 
         messages.forEach((message, index) => {
-            console.log(`Message ${index}:`, message);
 
             const messageText = message.content || message.response || message.text || message.message || '';
             const role = message.role || (message.is_user ? 'user' : 'assistant') || (message.sender === 'user' ? 'user' : 'assistant');
-
-            console.log(`Message ${index} role:`, role, 'text:', messageText);
 
             if (role === 'user') {
                 historyHTML += '<div class="message user-message">';
@@ -201,16 +220,30 @@ export class ChatManager {
 
         // ДОБАВЛЯЕМ ПЕРЕСЧЕТ LAYOUT
         this.recalculateLayout();
-
-        console.log('History rendered, messages count:', messages.length);
     }
 
+
+    /**
+     * Показывает сообщение об ошибке
+     */
+    showError(message) {
+        const historyContainer = document.getElementById('history-container');
+        if (!historyContainer) return;
+
+        const errorMessage = this.convertToString(message);
+        historyContainer.innerHTML = `
+            <div class="text-center text-danger p-4">
+                ${this.escapeAndFormatText(errorMessage)}
+            </div>
+        `;
+
+        this.recalculateLayout();
+    }
     renderMarkdown(text) {
         if (!text) return '';
 
         try {
             if (typeof marked === 'undefined') {
-                console.warn('Marked.js not available, using plain text');
                 return this.escapeAndFormatText(text);
             }
 
@@ -222,7 +255,6 @@ export class ChatManager {
 
             return rendered;
         } catch (error) {
-            console.error('Markdown rendering error:', error);
             return this.escapeAndFormatText(text);
         }
     }
@@ -344,17 +376,6 @@ export class ChatManager {
             .replace(/>/g, "&gt;");
     }
 
-    applySyntaxHighlighting() {
-        if (typeof hljs === 'undefined') {
-            console.warn('Highlight.js not available');
-            return;
-        }
-
-        document.querySelectorAll('pre code').forEach((block) => {
-            hljs.highlightElement(block);
-        });
-    }
-
     bindCopyButtons() {
         // Кнопки копирования для всего сообщения - ИСПРАВЛЕННЫЙ
         const copyButtons = document.querySelectorAll('.copy-button');
@@ -453,7 +474,6 @@ export class ChatManager {
             }, 2000);
 
         } catch (err) {
-            console.error('Ошибка копирования: ', err);
             // Fallback для старых браузеров
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -474,6 +494,10 @@ export class ChatManager {
     }
 
     addMessage(text, type = 'assistant') {
+        if (type === 'streaming') {
+            return this.createStreamingMessage();
+        }
+
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
 
@@ -515,8 +539,6 @@ export class ChatManager {
 
         // ДОБАВЛЯЕМ ВЫЗОВ ПЕРЕСЧЕТА LAYOUT
         this.recalculateLayout();
-
-        console.log('Message added:', { type, text: messageText.substring(0, 50) + '...' });
     }
     convertToString(value) {
         if (value === null || value === undefined) {
@@ -550,7 +572,6 @@ export class ChatManager {
     }
 
     setCurrentChatId(chatId) {
-        console.log('Setting current chat ID from', this.currentChatId, 'to', chatId);
         this.currentChatId = chatId;
     }
 
@@ -563,7 +584,6 @@ export class ChatManager {
         if (this.currentChatId === oldChatId) {
             this.currentChatId = newChatId;
         }
-        console.log('Chat ID updated from', oldChatId, 'to', newChatId);
     }
 
     isTempChat(chatId = null) {
@@ -633,6 +653,54 @@ export class ChatManager {
             });
         }
     }
+    createStreamingMessage() {
+        const historyContainer = document.getElementById('history-container');
+        if (!historyContainer) return null;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai-message streaming';
+
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.textContent = ''; // Начинаем с пустого текста
+
+        messageDiv.appendChild(messageContent);
+        historyContainer.appendChild(messageDiv);
+
+        this.recalculateLayout();
+        return messageDiv;
+    }
+
+    updateStreamingMessage(messageElement, content, type = 'assistant') {
+        if (!messageElement) return;
+
+        const contentElement = messageElement.querySelector('.message-content');
+        if (contentElement) {
+            if (type === 'error') {
+                contentElement.innerHTML = this.escapeAndFormatText(content);
+                messageElement.className = 'message error-message';
+            } else {
+                contentElement.innerHTML = this.renderMarkdown(content);
+                messageElement.className = 'message ai-message streaming';
+            }
+        }
+
+        this.applySyntaxHighlighting();
+        this.scrollToBottom();
+    }
+
+    finalizeStreamingMessage(messageElement, content) {
+        if (!messageElement) return;
+
+        const contentElement = messageElement.querySelector('.message-content');
+        if (contentElement) {
+            contentElement.innerHTML = this.renderMarkdown(content);
+        }
+
+        messageElement.classList.remove('streaming');
+        this.applySyntaxHighlighting();
+        this.scrollToBottom();
+    }
 
     /**
      * Обновление высот контейнеров для предотвращения перекрытия
@@ -644,17 +712,11 @@ export class ChatManager {
         const inputArea = document.getElementById('input-area');
 
         if (!header || !container || !historyContainer || !inputArea) {
-            console.log('Layout elements not found, retrying...');
             return;
         }
 
         const headerHeight = header.offsetHeight;
         const inputAreaHeight = inputArea.offsetHeight;
-
-        console.log('Updating layout heights:', {
-            headerHeight,
-            inputAreaHeight
-        });
 
         // Устанавливаем высоту основного контейнера
         container.style.height = `calc(100vh - ${headerHeight}px)`;

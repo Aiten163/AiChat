@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -14,12 +15,16 @@ class ProhibitedMessageGet extends Notification
     use Queueable;
 
     private string $message;
+    private User $user;
+    private string $reason;
     /**
      * Create a new notification instance.
      */
-    public function __construct($data)
+    public function __construct($user, $message, $reason)
     {
-        $this->message = 123;
+        $this->user = User::find($user);
+        $this->message = $message;
+        $this->reason = $reason;
     }
 
     /**
@@ -32,15 +37,11 @@ class ProhibitedMessageGet extends Notification
         return [DashboardChannel::class];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toDashboard(object $notifiable)
     {
         return (new DashboardMessage)
-            ->title('Получен запрещенный запрос!')
-            ->message('')
-            ->action('Notification Action', url('/'));
+            ->title('Получен запрещенный запрос! ' . $this->reason)
+            ->message('Сообщение: ' . $this->message . " от пользователя: " . $this->user->name . " " . now());
     }
 
     /**

@@ -40,7 +40,6 @@ export function sendMessage(message, model) {
             return response.json();
         })
         .then(data => {
-            console.log('Полученные данные:', data);
 
             let responseText = '';
             if (typeof data === 'string') {
@@ -54,7 +53,6 @@ export function sendMessage(message, model) {
             addMessage(responseText, 'assistant');
         })
         .catch(error => {
-            console.error('Error:', error);
             addMessage('Ошибка при отправке сообщения: ' + error.message, 'error');
         });
 }

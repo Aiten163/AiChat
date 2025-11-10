@@ -1,16 +1,22 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\Chat;
 use App\Models\ChatMessage;
 use App\Models\User;
 use App\Models\UserActivity;
+use App\Notifications\ProhibitedMessageGet;
 use App\Services\ChatService;
+use App\Services\FilterServices\FilterService;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
-class OllamaController extends Controller {
+class OllamaController extends Controller
+{
     private ?int $user_id = null;
 
     public function __construct()
@@ -23,31 +29,44 @@ class OllamaController extends Controller {
 
     public function postRequest(Request $request)
     {
-        try {
-            $prompt = $request->input('prompt');
-            $model = $request->input('model');
-            $chatId = $request->input('chatID');
-            $userId = auth()->id();
+        $validated = $request->validate([
+            'prompt' => 'required|string',
+            'chatID' => 'required|min:1',
+            'model' => 'required|string|max:100',
+        ]);
+        $prompt = $request->input('prompt');
+        $model = $request->input('model');
+        $chatId = $request->input('chatID');
+        $userId = $this->user_id;
 
-            // Создаем сервис
+        try {
+            $filterService = new FilterService($model);
+            if(!$filterService->filter($prompt, $model)) {
+                throw new \Exception('Данный запрос нарушает правила информационной безопасности');
+            }
+
             $chatService = new ChatService($chatId, $prompt, $model, $userId);
 
-            // Получаем ответ
-            $result = $chatService->getResponse();
-
-            return response()->json([
-                'response' => $result['response'],
-                'chat_id' => $result['chat_id'],
-                'is_new_chat' => $result['is_new_chat'],
-                'chat_name' => $result['chat_name']
-            ]);
+            return $chatService->processMessage();
 
         } catch (\Exception $e) {
             Log::error('Chat service error: ' . $e->getMessage());
-            return response()->json([
-                'error' => 'Ошибка при обработке запроса',
-                'chat_id' => $chatId // Возвращаем исходный chat_id при ошибке
-            ], 500);
+
+            $admins = User::where('is_admin', true)->get();
+            Notification::send($admins, new ProhibitedMessageGet($userId, $prompt, $e->getMessage()));
+
+            return response()->stream(function () use ($e, $chatId) {
+                echo "data: " . json_encode([
+                        'type' => 'error',
+                        'error' => $e->getMessage(),
+                        'chat_id' => $chatId ?? null
+                    ]) . "\n\n";
+                flush();
+            }, 500, [
+                'Content-Type' => 'text/event-stream',
+                'Cache-Control' => 'no-cache',
+                'X-Accel-Buffering' => 'no',
+            ]);
         }
     }
 }

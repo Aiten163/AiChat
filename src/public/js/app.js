@@ -33,9 +33,7 @@ class App {
             // Делаем доступным глобально для отладки
             window.app = this;
 
-            console.log('App initialized successfully');
         } catch (error) {
-            console.error('Error initializing app:', error);
         }
     }
 }

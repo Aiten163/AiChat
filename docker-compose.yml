@@ -12,6 +12,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/var/www/html
       - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
@@ -59,6 +61,21 @@ services:
       timeout: 10s
       retries: 20
 
+  redis:
+    image: redis:7-alpine
+    container_name: faberlicai-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - faberlicai-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+    command: redis-server --appendonly yes
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: faberlicai-phpmyadmin
@@ -76,6 +93,7 @@ services:
 
 volumes:
   mysql_data:
+  redis_data:
 
 networks:
   faberlicai-network:
