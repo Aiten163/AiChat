@@ -7,6 +7,7 @@ use App\Models\Base_prompt; // Добавляем модель Base_prompt
 use App\Orchid\Layouts\Neural\NeuralTable;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Fields\Input;
@@ -289,7 +290,8 @@ class NeuralScreen extends Screen
             'base_prompt_id' => 'nullable|exists:base_prompts,id',
         ]);
 
-        Neural::create($request->all());
+        $neural = Neural::create($request->all());
+        Cache::set('neural:' . $neural->id, $neural);
         Toast::info('Нейросеть успешно добавлена');
     }
 }

@@ -8,6 +8,7 @@ use http\Message;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Chat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
@@ -17,11 +18,18 @@ class HomeController extends Controller
             ->orderBy('id', 'desc')
             ->get(['id', 'name','lastMessage']);
 
-        $neurals = Neural::get(['show_name', 'name']);
+        if (Cache::has('neurals')) {
+            $neurals = Cache::get('neurals');
+        } else {
+            $neurals = Neural::get(['show_name', 'name']);
+            Cache::set('neurals', $neurals, 3600);
+        }
 
         return view('home', ['chats' => $chats, 'neurals' => $neurals]);
     }
-    public function getHistoryChat(Request $request) {
+
+    public function getHistoryChat(Request $request)
+    {
         $request->validate([
             'chat_id' => 'required|integer'
         ]);

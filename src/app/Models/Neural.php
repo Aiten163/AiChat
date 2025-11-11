@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Orchid\Filters\Filterable;
 use Orchid\Filters\Types\Like;
 use Orchid\Filters\Types\Where;
@@ -50,6 +51,13 @@ class Neural extends Model
         'temperature',
         'countLastMessage',
     ];
+
+    public function getOnName($neural_name): self
+    {
+        if(Cache::has('neurals')) {}
+        $this->where('name', $neural_name)->first();
+        return $this->getOnName;
+    }
 
     public function neuralFilter()
     {

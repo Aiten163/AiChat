@@ -3,6 +3,7 @@
 namespace App\Services\FilterServices;
 
 use App\Models\NeuralFilter;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class FilterService
@@ -11,10 +12,15 @@ class FilterService
 
     public function __construct($neural)
     {
-        $this->neuralFilter = NeuralFilter::where('activeSimple', '=', 1)
-            ->orWhere('activePrompt', '=', 1)
-            ->with('neural')
-            ->first();
+        if (Cache::has('neuralFilter')) {
+            $this->neuralFilter = Cache::get('neuralFilter');
+        } else {
+            $this->neuralFilter = NeuralFilter::where('activeSimple', '=', 1)
+                ->orWhere('activePrompt', '=', 1)
+                ->with('neural')
+                ->first();
+            Cache::set('neuralFilter', $this->neuralFilter, 3600);
+        }
     }
 
     public function filter($text): bool
