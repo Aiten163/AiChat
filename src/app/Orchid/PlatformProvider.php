@@ -62,6 +62,9 @@ class PlatformProvider extends OrchidServiceProvider
                         ->icon('bs.chat-left')
                         ->route('platform.analytics.messages'),
                 ]),
+            Menu::make(__('Настройка почты'))
+                ->icon('bs.email')
+                ->route('platform.emailSettings'),
         ];
     }
 
