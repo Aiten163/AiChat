@@ -7,7 +7,7 @@ use App\Orchid\Screens\NeuralFilters\NeuralFilterListScreen;
 use Illuminate\Support\Facades\Route;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\UserListScreen;
-use App\Orchid\Screens\EmailSettings;
+use App\Orchid\Screens\EmailSettingsScreen;
 use \App\Orchid\Screens\BasePromptScreen;
 
 // Главная группа с middleware
@@ -42,6 +42,6 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
         Route::screen('{filter}/edit', NeuralFilterEditScreen::class)
             ->name('platform.neural-filters.edit');
     });
-    Route::screen('/emailSettings', \App\Orchid\Screens\EmailSettings::class)
+    Route::screen('/emailSettings', EmailSettingsScreen::class)
         ->name('platform.emailSettings');
 });

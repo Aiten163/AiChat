@@ -27,7 +27,7 @@ fi
 
 if [ -f "artisan" ]; then
     echo "Waiting for database to be ready..."
-    max_attempts=10
+    max_attempts=7
     attempt=1
 
     while [ $attempt -le $max_attempts ]; do

@@ -20,101 +20,21 @@ class EmailSettingsScreen extends Screen
     public $name = 'Промты для нейросетей';
     public $description = 'Добавление, редактирование и удаление промтов';
     public $permission = [];
-
     public function query(): array
     {
-        return [
-            'prompts' => BasePrompt::orderBy('id', 'desc')->paginate(),
-        ];
-    }
-
-    public function commandBar(): array
-    {
-        return [
-            ModalToggle::make('Добавить промт')
-                ->icon('plus')
-                ->modal('editPrompt')
-                ->method('savePrompt')
-                ->async('asyncGetPrompt'),
-        ];
+        return [];
     }
 
     public function layout(): array
     {
+        $login = 'test ';
         return [
-            Layout::table('prompts', [
-                TD::make('id', 'ID')->sort(),
-                TD::make('name', 'Название'),
-                TD::make('prompt', 'Промт')->render(function (BasePrompt $prompt) {
-                    return \Illuminate\Support\Str::limit($prompt->prompt,200);
-                }),
-                TD::make('Действия')
-                    ->align(TD::ALIGN_CENTER)
-                    ->render(fn (BasePrompt $prompt) => Group::make([
-                        ModalToggle::make('Редактировать')
-                            ->icon('pencil')
-                            ->modal('editPrompt')
-                            ->method('savePrompt')
-                            ->asyncParameters([
-                                'prompt' => $prompt->id,
-                            ]),
-                        Button::make('Удалить')
-                            ->icon('trash')
-                            ->method('delete')
-                            ->parameters([
-                                'id' => $prompt->id,
-                            ])
-                            ->confirm('Вы уверены, что хотите удалить этот промт?'),
-
-                    ])),
+            Layout::view('admin.emailSettings', [
+                'email' => [
+                    'login' => $login
+                ]
             ]),
-
-            Layout::modal('editPrompt', Layout::rows([
-                Input::make('id')->type('hidden'),
-                Input::make('name')->title('Название')->required(),
-                TextArea::make('prompt')->title('Текст промта')->rows(6)->required(),
-            ]))
-                ->title('Редактировать промт')
-                ->applyButton('Сохранить')
-                ->closeButton('Отмена')
-                ->async('asyncGetPrompt'),
-
         ];
     }
 
-    public function asyncGetPrompt(int $prompt = null): array
-    {
-        if ($prompt) {
-            return BasePrompt::findOrFail($prompt)->toArray();
-        }
-
-        return ['id' => null, 'name' => '', 'prompt' => ''];
-    }
-
-    public function savePrompt(Request $request)
-    {
-        $data = $request->validate([
-            'id' => ['nullable', 'integer'],
-            'name' => ['required', 'string'],
-            'prompt' => ['required', 'string'],
-        ]);
-
-        BasePrompt::updateOrCreate(
-            ['id' => $data['id'] ?? null],
-            [
-                'name' => $data['name'],
-                'prompt' => $data['prompt'],
-            ]
-        );
-
-        Toast::info('Промт успешно сохранён!');
-        return redirect()->route('platform.base-prompts');
-    }
-
-    public function delete(Request $request)
-    {
-        BasePrompt::findOrFail($request->get('id'))->delete();
-        Toast::info('Промт удалён!');
-        return redirect()->route('platform.base-prompts');
-    }
 }
