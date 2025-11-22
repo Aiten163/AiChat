@@ -27,11 +27,27 @@ class EmailSettingsScreen extends Screen
 
     public function layout(): array
     {
+        $mailSettings = [
+            'mail_mailer' => 'smtp',
+            'mail_host' => 'smtp.yandex.ru',
+            'mail_port' => 465,
+            'mail_username' => 'aiten1663@yandex.ru',
+            'mail_password' => 'ealayxitqpkfzbal',
+            'mail_encryption' => 'ssl',
+            'mail_from_address' => 'aiten1663@yandex.ru',
+            'mail_from_name' => 'AiChat',
+            'mail_message_theme' => '',
+            'mail_message_greeting' => '',
+            'mail_message_text' => '',
+        ];
+
         $login = 'test ';
         return [
             Layout::view('admin.emailSettings', [
-                'email' => [
-                    'login' => $login
+                'emailData' => [
+                    'login' => $mailSettings['mail_username'],
+                    'passwordIsSet' => isset($mailSettings['mail_password']),
+                    '' => $mailSettings['mail_username'],
                 ]
             ]),
         ];
