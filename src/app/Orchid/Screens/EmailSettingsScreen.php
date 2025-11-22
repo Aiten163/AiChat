@@ -17,8 +17,8 @@ use Illuminate\Http\Request;
 
 class EmailSettingsScreen extends Screen
 {
-    public $name = 'Промты для нейросетей';
-    public $description = 'Добавление, редактирование и удаление промтов';
+    public $name = 'Настройка почты';
+    public $description = '';
     public $permission = [];
     public function query(): array
     {
