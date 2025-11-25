@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Base_prompt as BasePrompt;
+use Illuminate\Support\Facades\Storage;
 use Orchid\Support\Facades\Toast;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Layouts\Table;
@@ -41,13 +42,13 @@ class EmailSettingsScreen extends Screen
             'mail_message_text' => '',
         ];
 
-        $login = 'test ';
+
         return [
             Layout::view('admin.emailSettings', [
                 'emailData' => [
-                    'login' => $mailSettings['mail_username'],
+                    'login' => $mailSettings['mail_username'] ?? '',
                     'passwordIsSet' => isset($mailSettings['mail_password']),
-                    '' => $mailSettings['mail_username'],
+                    'port' => $mailSettings['mail_port'] ?? '',
                 ]
             ]),
         ];

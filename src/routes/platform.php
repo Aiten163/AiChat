@@ -44,4 +44,6 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
     });
     Route::screen('/emailSettings', EmailSettingsScreen::class)
         ->name('platform.emailSettings');
+    Route::post('emailSettings/store', [\App\Http\Controllers\EmailSettingsController::class, 'store'])
+    ->name('platform.emailSettings.store');
 });
