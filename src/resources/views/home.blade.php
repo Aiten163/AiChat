@@ -6,8 +6,6 @@
     <title>AI Chat</title>
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <script src="bootstrap/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
     <link rel="stylesheet" href="{{ asset('js/lib/highlight/styles/github-dark.min.css') }}">
     <script src="{{ asset('js/lib/marked/marked.min.js') }}"></script>
     <script src="{{ asset('js/lib/highlight/highlight.min.js') }}"></script>
