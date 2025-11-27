@@ -8,7 +8,7 @@ export class Sidebar {
         this.newChatBtn = document.getElementById('new-chat-btn');
         this.isEditing = false;
         this.currentEditChatId = null;
-        this.pendingDeleteChatId = null; // ID чата для удаления
+        this.pendingDeleteChatId = null;
 
         this.init();
     }
@@ -17,7 +17,8 @@ export class Sidebar {
         this.bindEvents();
         this.markCurrentChat();
         this.bindChatActions();
-        this.bindModalEvents(); // Инициализируем модалку
+        this.bindModalEvents();
+        this.bindSupportModalEvents(); // Добавляем привязку событий для модалки поддержки
     }
 
     bindEvents() {
@@ -52,6 +53,265 @@ export class Sidebar {
 
             this.markCurrentChat();
         });
+    }
+    bindSupportModalEvents() {
+        const sendSupportBtn = document.getElementById('sendSupportBtn');
+        if (sendSupportBtn) {
+            sendSupportBtn.addEventListener('click', () => this.sendSupportMessage());
+        }
+
+        const reportModal = document.getElementById('reportModal');
+        if (reportModal) {
+            reportModal.addEventListener('hidden.bs.modal', () => {
+                this.clearSupportForm();
+            });
+        }
+
+        // Обработчик для иконки прикрепления изображения
+        const attachImageIcon = document.getElementById('attachImageIcon');
+        if (attachImageIcon) {
+            attachImageIcon.addEventListener('click', () => this.triggerImageInput());
+        }
+
+        // Обработчик для выбора изображения
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => this.handleImageSelect(e));
+        }
+    }
+    triggerImageInput() {
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.click();
+        }
+    }
+    clearSupportForm() {
+        const form = document.getElementById('supportForm');
+        if (form) {
+            form.reset();
+        }
+
+        // Удаляем превью изображения
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        if (previewContainer) {
+            previewContainer.remove();
+        }
+    }
+    async sendSupportMessage() {
+        const message = document.getElementById('messageText');
+        const imageInput = document.getElementById('imageInput');
+        const imageFile = imageInput.files[0];
+
+        if (!message.value.trim()) {
+            this.showErrorNotification('Пожалуйста, введите сообщение');
+            return;
+        }
+
+        // Показываем индикатор загрузки
+        this.setSupportButtonState('loading');
+
+        try {
+            const formData = new FormData();
+            formData.append('message', message.value.trim());
+            formData.append('_token', this.chatManager.getCsrfToken());
+
+            // Если есть изображение, добавляем его
+            if (imageFile) {
+                formData.append('image', imageFile);
+            }
+
+            const response = await fetch('/api/support', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showSuccessNotification('Сообщение отправлено в техподдержку!');
+
+                // Закрываем модалку
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Очищаем форму
+                this.clearSupportForm();
+            } else {
+                throw new Error(result.error || 'Ошибка при отправке сообщения');
+            }
+
+        } catch (error) {
+            console.error('Ошибка отправки сообщения:', error);
+            this.showErrorNotification('Ошибка при отправке сообщения: ' + error.message);
+        } finally {
+            this.setSupportButtonState('normal');
+        }
+    }
+    handleImageSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Проверяем тип файла
+        if (!file.type.startsWith('image/')) {
+            this.showErrorNotification('Пожалуйста, выберите файл изображения (JPG, PNG, GIF)');
+            this.clearImageInput();
+            return;
+        }
+
+        // Проверяем размер файла (максимум 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            this.showErrorNotification('Размер файла не должен превышать 5MB');
+            this.clearImageInput();
+            return;
+        }
+
+        // Показываем превью изображения
+        this.showImagePreview(file);
+    }
+    clearImageInput() {
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.value = '';
+        }
+    }
+    showImagePreview(file) {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            // Создаем или находим контейнер для превью
+            let previewContainer = document.getElementById('imagePreviewContainer');
+            if (!previewContainer) {
+                previewContainer = document.createElement('div');
+                previewContainer.id = 'imagePreviewContainer';
+                previewContainer.className = 'image-preview-container mt-3';
+
+                const messageInput = document.getElementById('messageText');
+                messageInput.parentNode.appendChild(previewContainer);
+            }
+
+            previewContainer.innerHTML = `
+                <div class="image-preview-card">
+                    <div class="preview-header">
+                        <span><i class="bi bi-image me-2"></i>Прикрепленное изображение</span>
+                        <button type="button" class="btn-close btn-close-white" onclick="this.closest('.image-preview-container').remove(); document.getElementById('imageInput').value = '';"></button>
+                    </div>
+                    <div class="preview-body">
+                        <img src="${e.target.result}" alt="Превью" class="preview-image">
+                        <div class="preview-info">
+                            <small class="text-muted">${file.name} (${this.formatFileSize(file.size)})</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    async uploadImage() {
+        const imageInput = document.getElementById('imageInput');
+        const file = imageInput.files[0];
+
+        if (!file) {
+            this.showErrorNotification('Пожалуйста, выберите изображение');
+            return;
+        }
+
+        // Показываем индикатор загрузки
+        this.setUploadButtonState('loading');
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('_token', this.chatManager.getCsrfToken());
+
+            const response = await fetch('/api/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.showSuccessNotification('Изображение успешно загружено!');
+                this.clearImageForm();
+
+                // Если нужно обработать загруженное изображение
+                if (result.imageUrl) {
+                    this.handleUploadedImage(result.imageUrl);
+                }
+            } else {
+                throw new Error(result.error || 'Ошибка при загрузке изображения');
+            }
+
+        } catch (error) {
+            console.error('Ошибка загрузки изображения:', error);
+            this.showErrorNotification('Ошибка при загрузке изображения: ' + error.message);
+        } finally {
+            this.setUploadButtonState('normal');
+        }
+    }
+    setUploadButtonState(state) {
+        const uploadBtn = document.getElementById('uploadImageBtn');
+        if (!uploadBtn) return;
+
+        if (state === 'loading') {
+            uploadBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Загрузка...';
+            uploadBtn.disabled = true;
+        } else {
+            uploadBtn.innerHTML = '<i class="bi bi-cloud-upload me-2"></i>Загрузить изображение';
+            uploadBtn.disabled = false;
+        }
+    }
+    handleUploadedImage(imageUrl) {
+        // Здесь можно добавить логику для работы с загруженным изображением
+        // Например, вставить в чат или сохранить ссылку
+        console.log('Изображение загружено:', imageUrl);
+
+        // Если нужно отправить изображение в текущий чат
+        if (this.chatManager && this.chatManager.getCurrentChatId()) {
+            // this.chatManager.sendImageMessage(imageUrl);
+        }
+    }
+    clearImageForm() {
+        const imageInput = document.getElementById('imageInput');
+        if (imageInput) {
+            imageInput.value = '';
+        }
+
+        const previewContainer = document.getElementById('imagePreviewContainer');
+        if (previewContainer) {
+            previewContainer.remove();
+        }
+    }
+    setSupportButtonState(state) {
+        const sendBtn = document.getElementById('sendSupportBtn');
+        if (!sendBtn) return;
+
+        if (state === 'loading') {
+            sendBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Отправка...';
+            sendBtn.disabled = true;
+        } else {
+            sendBtn.innerHTML = '<i class="bi bi-send me-2"></i>Отправить';
+            sendBtn.disabled = false;
+        }
     }
 
     bindModalEvents() {

@@ -27,6 +27,52 @@
             <i class="bi bi-plus-circle me-1"></i> Новый чат
         </button>
     </div>
+
+    <div class="sidebar-header border-bottom border-secondary m-3">
+        <button class="btn btn-outline-light btn-danger btn-sm w-100" id="report-btn" data-bs-toggle="modal" data-bs-target="#reportModal">
+            <i class="bi bi-wrench me-1"></i> Сообщить о проблеме
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true" style="z-index: 10000">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="reportModalLabel">
+                        <i class="bi bi-headset me-2"></i>Техподдержка
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="supportForm">
+                        <div class="mb-3 position-relative">
+                            <label for="messageText" class="form-label">Сообщение *</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="messageText" rows="4" placeholder="Опишите вашу проблему..." required></textarea>
+
+                            <!-- Иконка прикрепления изображения -->
+                            <div class="position-absolute" style="bottom: 10px; right: 10px;">
+                                <input type="file" class="d-none" id="imageInput" accept="image/*">
+                                <button type="button" class="btn btn-sm btn-outline-light border-0" id="attachImageIcon" title="Прикрепить изображение">
+                                    <i class="bi bi-image"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Контейнер для превью изображения -->
+                        <div id="imagePreviewContainer"></div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="sendSupportBtn">
+                        <i class="bi bi-send me-2"></i>Отправить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <ul class="chat-list text-white" id="chat-list">
         @foreach($chats as $chat)
             <li class="chat-item @if($loop->first) active @endif" data-chat-id="{{ $chat['id'] }}">
