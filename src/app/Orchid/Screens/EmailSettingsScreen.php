@@ -28,27 +28,20 @@ class EmailSettingsScreen extends Screen
 
     public function layout(): array
     {
-        $mailSettings = [
-            'mail_mailer' => 'smtp',
-            'mail_host' => 'smtp.yandex.ru',
-            'mail_port' => 465,
-            'mail_username' => 'aiten1663@yandex.ru',
-            'mail_password' => 'ealayxitqpkfzbal',
-            'mail_encryption' => 'ssl',
-            'mail_from_address' => 'aiten1663@yandex.ru',
-            'mail_from_name' => 'AiChat',
-            'mail_message_theme' => '',
-            'mail_message_greeting' => '',
-            'mail_message_text' => '',
-        ];
-
+        if ( Storage::exists('mail_settings.json')) {
+             $mailSettings = json_decode(Storage::get('mail_settings.json'));
+        }
 
         return [
             Layout::view('admin.emailSettings', [
                 'emailData' => [
                     'login' => $mailSettings['mail_username'] ?? '',
                     'passwordIsSet' => isset($mailSettings['mail_password']),
+                    'sender' => $mailSettings['sender'] ?? '',
                     'port' => $mailSettings['mail_port'] ?? '',
+                    'theme' => $mailSettings['mail_message_theme'] ?? '',
+                    'greeting' => $mailSettings['mail_message_theme'] ?? '',
+                    'text' => $mailSettings['mail_message_text'] ?? '',
                 ]
             ]),
         ];

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 class EmailSettingsController extends Controller
 {
     public function store(Request $request) {
-        Log::info('1');
         $request->validate([
             'emailLogin' => 'email|nullable',
             'emailPassword' => 'string|nullable',
@@ -19,7 +18,7 @@ class EmailSettingsController extends Controller
             'port' => 'integer|nullable',
             'sender' => 'string|nullable',
         ]);
-        Log::info('123');
+
         $email = $request->emailLogin;
         $password = $request->emailPassword;
         $theme = $request->messageTheme;

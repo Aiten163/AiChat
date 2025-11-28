@@ -1,5 +1,4 @@
-
-    <form method="post"  action="{{route('platform.emailSettings.store')}}">
+ <form method="post"  action="{{route('platform.emailSettings.store')}}">
         <div class="w-50 inline-flex">
             <div>
                 Email: <input type="email" autocomplete="off" value="{{$emailData['login'] ?? null}}" name="emailLogin" class="form-text w-100">
@@ -11,7 +10,7 @@
                 Имя отправителя: <input type="text" class="w-100" value="{{$emailData['sender'] ?? null}}"  name="sender">
             </div>
             <div>
-                Порт: <input type="number" class="w-100" value="{{$emailData['port'] ?? 465}}" name="sender">
+                Порт: <input type="number" class="w-100" value="{{$emailData['port'] ?? ''}}" name="sender">
             </div>
 
             <div style="margin-top: 5%">

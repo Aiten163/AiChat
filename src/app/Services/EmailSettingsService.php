@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
 
 class EmailSettingsService
 {
-    public static function store($port = 443, $email = '', $password='', $theme='', $greeting='', $text='', $sender=''): void
+    public static function store($port = 465, $email = '', $password='', $theme='', $greeting='', $text='', $sender=''): void
     {
         $mailSettings = [
             'mail_mailer' => 'smtp',
@@ -29,7 +29,6 @@ class EmailSettingsService
             'mail_message_greeting' => $greeting,
             'mail_message_text' => $text,
         ];
-        dd($mailSettings);
         Storage::put(
             'mail_settings.json',
             json_encode($mailSettings, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
