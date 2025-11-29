@@ -63,7 +63,7 @@ class PlatformProvider extends OrchidServiceProvider
                         ->route('platform.analytics.messages'),
                 ]),
             Menu::make(__('Настройка почты'))
-                ->icon('bs.email')
+                ->icon('bs.envelope')
                 ->route('platform.emailSettings'),
         ];
     }
