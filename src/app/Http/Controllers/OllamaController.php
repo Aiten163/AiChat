@@ -54,7 +54,7 @@ class OllamaController extends Controller
 
             $admins = User::where('is_admin', true)->get();
             Notification::send($admins, new ProhibitedMessageGet($userId, $prompt, $e->getMessage()));
-
+            //TODO:: добавить отправку писем для пользователя Notification::send($this->user_id, new ProhibitedMessageGet($userId, $prompt, $e->getMessage()));
             return response()->stream(function () use ($e, $chatId) {
                 echo "data: " . json_encode([
                         'type' => 'error',

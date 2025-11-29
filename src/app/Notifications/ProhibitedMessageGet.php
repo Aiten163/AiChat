@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Storage;
 use Orchid\Platform\Notifications\DashboardChannel;
 use Orchid\Platform\Notifications\DashboardMessage;
 
@@ -34,7 +35,7 @@ class ProhibitedMessageGet extends Notification
      */
     public function via(object $notifiable): array
     {
-        return [DashboardChannel::class];
+        return [DashboardChannel::class, 'mail'];
     }
 
     public function toDashboard(object $notifiable)
@@ -44,15 +45,12 @@ class ProhibitedMessageGet extends Notification
             ->message('Сообщение: ' . $this->message . " от пользователя: " . $this->user->name . " " . now());
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    public function toMail(object $notifiable): MailMessage
     {
-        return [
-            //
-        ];
+        return (new MailMessage)
+            ->subject('Нарушение правил!')
+            ->greeting("Внимание, $this->user->name")
+            ->line("")
+            ->line("");
     }
 }
