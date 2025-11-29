@@ -2,20 +2,19 @@
 
 namespace App\Notifications;
 
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Orchid\Platform\Notifications\DashboardChannel;
 use Orchid\Platform\Notifications\DashboardMessage;
 
-class ReportNotification extends Notification
+class ReportNotification extends Notification implements ShouldQueue
 {
     use Queueable;
-    private User $user;
-    private string $message;
-    private string $imagePath;
+
+    private $user;
+    private $message;
+    private $imagePath;
 
     /**
      * Create a new notification instance.
@@ -27,29 +26,28 @@ class ReportNotification extends Notification
         $this->imagePath = $imagePath;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
-        return ['mail', DashboardChannel::class];
-    }
-
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->line();
+        return [DashboardChannel::class];
     }
 
     public function toDashboard(object $notifiable)
     {
-        return (new DashboardMessage)
-            ->title('Техническая поддержка')
-            ->message('Сообщение: ' . $this->message . "\n От пользователя: " . $this->user->name);
+        $userName = $this->user ? $this->user->name : 'Анонимный пользователь';
+
+        $message = (new DashboardMessage)
+            ->title('Новое обращение в техподдержку')
+            ->message("
+ Пользователь: {$userName}
+ Сообщение: {$this->message}
+            ");
+
+        if ($this->imagePath) {
+            $filename = basename($this->imagePath);
+            $imageUrl = route('private.reports.image', ['filename' => $filename]);
+            $message->action('🖼️ Просмотреть изображение', $imageUrl);
+        }
+
+        return $message;
     }
 }

@@ -52,7 +52,7 @@ class OllamaController extends Controller
         } catch (\Exception $e) {
             Log::error('Chat service error: ' . $e->getMessage());
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::getAdmins();
             Notification::send($admins, new ProhibitedMessageGet($userId, $prompt, $e->getMessage()));
             //TODO:: добавить отправку писем для пользователя Notification::send($this->user_id, new ProhibitedMessageGet($userId, $prompt, $e->getMessage()));
             return response()->stream(function () use ($e, $chatId) {

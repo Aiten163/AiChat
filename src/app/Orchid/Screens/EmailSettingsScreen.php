@@ -33,7 +33,6 @@ class EmailSettingsScreen extends Screen
         return [
             'emailLogin' => $mailSettings['mail_username'] ?? '',
             'sender' => $mailSettings['sender'] ?? '',
-            'port' => $mailSettings['mail_port'] ?? '',
             'messageTheme' => $mailSettings['mail_message_theme'] ?? '',
             'messageGreeting' => $mailSettings['mail_message_greeting'] ?? '',
             'messageText' => $mailSettings['mail_message_text'] ?? '',
@@ -60,17 +59,11 @@ class EmailSettingsScreen extends Screen
                 Input::make('sender')
                     ->title('Имя отправителя')
                     ->placeholder('Ai Chat'),
-
-                Input::make('port')
-                    ->type('number')
-                    ->title('Порт')
-                    ->placeholder('Введите порт')
-                    ->help('SSL 465 | без SSL 587'),
             ]),
 
                 Layout::rows([
                     Label::make('')
-                        ->title('Настройка для сообщений с нарушением информационной безопасности')
+                        ->title('Настройка для сообщений с нарушением информационной безопасности пользователям')
                         ->class('fw-bold fs-5'),
                     Input::make('messageTheme')
                         ->title('Тема сообщения')
@@ -102,7 +95,6 @@ class EmailSettingsScreen extends Screen
             'emailLogin' => 'email|nullable',
             'emailPassword' => 'sometimes|string|nullable',
             'sender' => 'string|nullable',
-            'port' => 'integer|nullable',
             'messageTheme' => 'string|nullable',
             'messageGreeting' => 'string|nullable',
             'messageText' => 'string|nullable',
@@ -113,10 +105,13 @@ class EmailSettingsScreen extends Screen
         $mailSettings = [
             'mail_username' => $validated['emailLogin'] ?? $currentSettings['mail_username'] ?? '',
             'sender' => $validated['sender'] ?? $currentSettings['sender'] ?? '',
-            'mail_port' => $validated['port'] ?? $currentSettings['mail_port'] ?? '',
             'mail_message_theme' => $validated['messageTheme'] ?? $currentSettings['mail_message_theme'] ?? '',
             'mail_message_greeting' => $validated['messageGreeting'] ?? $currentSettings['mail_message_greeting'] ?? '',
             'mail_message_text' => $validated['messageText'] ?? $currentSettings['mail_message_text'] ?? '',
+            // CONST
+            'mail_host' => 'smtp.yandex.ru',
+            'mail_encryption' => 'ssl',
+            'mail_port' => 465
         ];
 
         if (!empty(trim($validated['emailPassword'] ?? ''))) {

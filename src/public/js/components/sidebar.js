@@ -122,17 +122,40 @@ export class Sidebar {
 
             const response = await fetch('/api/support', {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Проверяем Content-Type перед парсингом JSON
+            const contentType = response.headers.get('content-type');
+
+            if (!contentType || !contentType.includes('application/json')) {
+                // Если сервер вернул не JSON, получаем текст для отладки
+                const textResponse = await response.text();
+                console.error('Server returned non-JSON response:', textResponse.substring(0, 200));
+
+                if (response.status === 404) {
+                    throw new Error('Сервер не найден. Проверьте URL адрес.');
+                } else if (response.status === 419) {
+                    throw new Error('Сессия истекла. Пожалуйста, обновите страницу.');
+                } else if (response.status === 500) {
+                    throw new Error('Внутренняя ошибка сервера. Пожалуйста, попробуйте позже.');
+                } else {
+                    throw new Error(`Сервер вернул ошибку: ${response.status}`);
+                }
             }
 
             const result = await response.json();
 
+            if (!response.ok) {
+                throw new Error(result.error || `Ошибка сервера: ${response.status}`);
+            }
+
             if (result.success) {
-                this.showSuccessNotification('Сообщение отправлено в техподдержку!');
+                this.showSuccessNotification(result.message || 'Сообщение отправлено в техподдержку!');
 
                 // Закрываем модалку
                 const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
@@ -148,7 +171,12 @@ export class Sidebar {
 
         } catch (error) {
             console.error('Ошибка отправки сообщения:', error);
-            this.showErrorNotification('Ошибка при отправке сообщения: ' + error.message);
+
+            if (error.name === 'SyntaxError') {
+                this.showErrorNotification('Ошибка формата ответа от сервера. Пожалуйста, попробуйте позже.');
+            } else {
+                this.showErrorNotification('Ошибка при отправке сообщения: ' + error.message);
+            }
         } finally {
             this.setSupportButtonState('normal');
         }

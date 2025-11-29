@@ -86,6 +86,11 @@ class User extends Authenticatable
         return '';
     }
 
+    public static function getAdmins()
+    {
+        return self::where('is_admin', true)->get();
+    }
+
     public function validateForPassportPasswordGrant($password)
     {
         return true;

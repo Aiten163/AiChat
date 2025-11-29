@@ -26,14 +26,13 @@ class NeuralFilterService
                 ->ask();
 
 
-            // ⚡ ИСПРАВЛЕНИЕ: Правильно извлекаем контент
             $responseContent = $response['message']['content'] ?? $response['response'] ?? '';
 
 
             return self::parseResponse($responseContent);
 
         } catch (\Exception $e) {
-            return true; // При ошибке пропускаем сообщение
+            return true;
         }
     }
 
@@ -41,8 +40,6 @@ class NeuralFilterService
     {
         $response = strtolower(trim($response));
 
-
-        // Если ответ пустой - считаем безопасным
         if (empty($response)) {
             return true;
         }

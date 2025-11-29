@@ -3,6 +3,7 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Base_prompt as BasePrompt;
+use Illuminate\Support\Facades\Cache;
 use Orchid\Support\Facades\Toast;
 use Orchid\Screen\Screen;
 use Orchid\Screen\Layouts\Table;
@@ -106,6 +107,7 @@ class BasePromptScreen extends Screen
                 'prompt' => $data['prompt'],
             ]
         );
+        Cache::set('base_prompt:' . $data['id'], $data['prompt']);
 
         Toast::info('Промт успешно сохранён!');
         return redirect()->route('platform.base-prompts');
@@ -114,6 +116,8 @@ class BasePromptScreen extends Screen
     public function delete(Request $request)
     {
         BasePrompt::findOrFail($request->get('id'))->delete();
+        Cache::delete('base_prompt:' . $request->get('id'));
+
         Toast::info('Промт удалён!');
         return redirect()->route('platform.base-prompts');
     }

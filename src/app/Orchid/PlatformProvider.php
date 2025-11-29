@@ -34,6 +34,11 @@ class PlatformProvider extends OrchidServiceProvider
     public function menu(): array
     {
         return [
+            Menu::make('Вернуться')->
+            route('home')
+            ->icon('bs.arrow-left')
+            ->active('home'),
+
             Menu::make('Настройка нейросетей')
                 ->icon('bs.gear')
                 ->list([

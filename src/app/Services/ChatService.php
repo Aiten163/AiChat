@@ -25,6 +25,7 @@ class ChatService
     public function __construct($chatID, $text, $neural_name, $userID)
     {
         $this->neural = Neural::where('name', $neural_name)->first();
+        #$this->neural = Neural::getOnName($neural_name);
         $this->titleService = new ChatTitleService();
         $this->text = $text;
         $this->userID = $userID;
