@@ -10,6 +10,18 @@ server {
         return 403;
     }
 
+    # Специальный блок для изображений отчетов ДО основного правила
+    location ~ ^/admin/reports/image/ {
+        try_files $uri $uri/ /index.php?$query_string;
+
+        # Увеличиваем таймауты
+        fastcgi_read_timeout 300;
+
+        # Отключаем кэширование для динамических изображений
+        expires -1;
+        add_header Cache-Control "no-cache, private";
+    }
+
     # Специальный блок для Orchid assets ДО статических файлов
     location ^~ /vendor/orchid/ {
         allow all;
@@ -28,15 +40,9 @@ server {
 
     # Основное правило для PHP
     location / {
-        fastcgi_buffering off;
-        gzip off;
-        proxy_buffering off;
-
         # Увеличиваем таймауты
         fastcgi_read_timeout 300;
 
-        # Отключает буферизацию FastCGI
-        fastcgi_keep_conn on;
         try_files $uri $uri/ /index.php?$query_string;
     }
 
@@ -55,6 +61,9 @@ server {
         fastcgi_buffers 16 16k;
         fastcgi_buffer_size 32k;
         fastcgi_read_timeout 300;
+
+        # Отключаем буферизацию для изображений
+        fastcgi_buffering off;
     }
 
     # Deny access to .htaccess files

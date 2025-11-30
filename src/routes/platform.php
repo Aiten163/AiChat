@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Orchid\Screens\NeuralFilters\NeuralFilterEditScreen;
 use App\Orchid\Screens\NeuralFilters\NeuralFilterListScreen;
+use App\Orchid\Screens\ReportDetailScreen;
 use Illuminate\Support\Facades\Route;
 use App\Orchid\Screens\PlatformScreen;
 use App\Orchid\Screens\UserListScreen;
@@ -46,4 +47,11 @@ Route::middleware(['web', 'auth', 'platform'])->group(function () {
         ->name('platform.emailSettings');
     Route::post('email-settings/store', [EmailSettingsScreen::class, 'store'])
         ->name('platform.emailSettings.store');
+    Route::screen('reports/detail', ReportDetailScreen::class)
+        ->name('platform.reports.detail')
+        ->breadcrumbs(function (\Tabuna\Breadcrumbs\Trail $trail) {
+            return $trail
+                ->parent('platform.index')
+                ->push('Обращение в техподдержку');
+        });
 });

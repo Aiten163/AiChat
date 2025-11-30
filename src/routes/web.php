@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use LdapRecord\Models\ActiveDirectory\User;
 use App\Http\Controllers\ReportController;
-
+Route::get('/debug/reports/image/{filename}', [App\Http\Controllers\ReportController::class, 'showImage'])
+    ->name('debug.reports.image');
 Route::get('/login', function () {
     return redirect('/');
 });
@@ -24,7 +25,5 @@ Route::middleware('auth')->group(function () {
     Route::post('/postRequest', [OllamaController::class, 'postRequest'])->name('postRequest');
     Route::post('/chats/{chat}/rename', [ChatController::class, 'rename'])->name('chats.rename');
     Route::delete('/chats/{chat}', [ChatController::class, 'destroy'])->name('chats.destroy');
-    Route::get('/private-images/reports/{filename}', [ReportController::class, 'showImage'])
-        ->name('private.reports.image')
-        ->middleware('auth');
+
 });

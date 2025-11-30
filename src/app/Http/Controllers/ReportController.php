@@ -42,36 +42,34 @@ class ReportController extends Controller
         }
 
         try {
-            $user = auth()->user();
             $imagePath = null;
 
             // Обработка изображения, если оно есть
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $image = $request->file('image');
                 $fileName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('reports', $fileName);
+                // Сохраняем в PUBLIC директорию
+                $imagePath = $image->storeAs('reports', $fileName, 'public');
 
-                \Log::info('Image saved', ['path' => $imagePath]);
+                \Log::info('Image saved to public storage', [
+                    'path' => $imagePath,
+                    'full_url' => Storage::disk('public')->url($imagePath)
+                ]);
             }
 
+            $user = auth()->user();
             // Отправляем уведомление админам
             $admins = User::getAdmins();
-
-            \Log::info('Found admins', ['count' => $admins->count(), 'admins' => $admins->pluck('email')]);
-
             foreach ($admins as $admin) {
-                \Log::info('Sending notification to admin', ['admin_id' => $admin->id, 'email' => $admin->email]);
                 $admin->notify(new ReportNotification($user, $request->message, $imagePath));
             }
-
-            \Log::info('Notification sent successfully');
 
             return response()->json([
                 'success' => true,
                 'message' => 'Ваше сообщение успешно отправлено в техподдержку',
             ], 201);
 
-        }catch (\Exception $e) {
+        } catch (\Exception $e) {
             \Log::error('Error saving report: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'ip' => $request->ip()
@@ -84,39 +82,4 @@ class ReportController extends Controller
         }
     }
 
-    /**
-     * Метод для защищенного доступа к изображениям
-     */
-    public function showImage($filename)
-    {
-        // Проверяем авторизацию
-        if (!auth()->check()) {
-            abort(403, 'Доступ запрещен');
-        }
-
-        // Дополнительная проверка - только админы
-        $user = auth()->user();
-        if (!$user->is_admin) { // Убедитесь, что у пользователя есть свойство is_admin
-            abort(403, 'У вас нет прав для просмотра изображений техподдержки');
-        }
-
-        $path = storage_path('app/reports/' . $filename);
-
-        if (!file_exists($path)) {
-            abort(404, 'Изображение не найдено');
-        }
-
-        // Определяем MIME-тип
-        $mime = mime_content_type($path);
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-        if (!in_array($mime, $allowedMimes)) {
-            abort(403, 'Недопустимый тип файла');
-        }
-
-        return response()->file($path, [
-            'Content-Type' => $mime,
-            'Cache-Control' => 'private, max-age=3600' // Кэшируем на 1 час
-        ]);
-    }
 }

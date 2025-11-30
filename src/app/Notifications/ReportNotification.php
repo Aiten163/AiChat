@@ -3,12 +3,11 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Orchid\Platform\Notifications\DashboardChannel;
 use Orchid\Platform\Notifications\DashboardMessage;
 
-class ReportNotification extends Notification implements ShouldQueue
+class ReportNotification extends Notification
 {
     use Queueable;
 
@@ -16,9 +15,6 @@ class ReportNotification extends Notification implements ShouldQueue
     private $message;
     private $imagePath;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct($user, $message, $imagePath)
     {
         $this->user = $user;
@@ -31,23 +27,29 @@ class ReportNotification extends Notification implements ShouldQueue
         return [DashboardChannel::class];
     }
 
-    public function toDashboard(object $notifiable)
+    public function toDashboard(object $notifiable): array
     {
         $userName = $this->user ? $this->user->name : 'Анонимный пользователь';
+        $shortMessage = \Str::limit($this->message, 50);
 
-        $message = (new DashboardMessage)
-            ->title('Новое обращение в техподдержку')
-            ->message("
- Пользователь: {$userName}
- Сообщение: {$this->message}
-            ");
+        // Создаем URL для детальной страницы отчета
+        $detailUrl = route('platform.reports.detail', [
+            'notification' => $this->id
+        ]);
 
-        if ($this->imagePath) {
-            $filename = basename($this->imagePath);
-            $imageUrl = route('private.reports.image', ['filename' => $filename]);
-            $message->action('🖼️ Просмотреть изображение', $imageUrl);
-        }
-
-        return $message;
+        // Возвращаем массив с данными для базы
+        return [
+            'title' => 'Новое обращение в техподдержку',
+            'message' => "Пользователь: {$userName}\nСообщение: {$shortMessage}",
+            'action' => $detailUrl,
+            'type' => 'info',
+            // Дополнительные данные для детальной страницы
+            'report_data' => [
+                'user_name' => $this->user ? $this->user->name : 'Анонимный пользователь',
+                'user_id' => $this->user ? $this->user->id : null,
+                'message' => $this->message,
+                'image_path' => $this->imagePath,
+            ]
+        ];
     }
 }

@@ -9,6 +9,10 @@ services:
     container_name: faberlicai-php
     restart: unless-stopped
     working_dir: /var/www/html
+    command: >
+      sh -c "
+      php artisan queue:work --sleep=3 --tries=3 --timeout=60 &
+      php-fpm"
     depends_on:
       mysql:
         condition: service_healthy
@@ -88,24 +92,6 @@ services:
       - "${IP_HOST}:8081:80"
     depends_on:
       - mysql
-    networks:
-      - faberlicai-network
-  queue-worker:
-    image: faberlicai-php
-    container_name: faberlicai-queue-worker
-    restart: unless-stopped
-    working_dir: /var/www/html
-    command: php artisan queue:work --sleep=3 --tries=3 --timeout=60
-    volumes:
-      - ./src:/var/www/html
-      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      - QUEUE_CONNECTION=redis
     networks:
       - faberlicai-network
 volumes:
