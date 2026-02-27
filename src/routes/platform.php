@@ -11,7 +11,6 @@ use App\Orchid\Screens\UserListScreen;
 use App\Orchid\Screens\EmailSettingsScreen;
 use \App\Orchid\Screens\BasePromptScreen;
 
-// Главная группа с middleware
 Route::middleware(['web', 'auth', 'platform'])->group(function () {
 
     Route::screen('/neurals', \App\Orchid\Screens\NeuralScreen::class)

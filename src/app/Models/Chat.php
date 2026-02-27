@@ -10,11 +10,6 @@ class Chat extends Model
     use HasFactory;
     public $timestamps = false;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'user_id',
         'name',
@@ -22,9 +17,6 @@ class Chat extends Model
         'lastMessage',
     ];
 
-    /**
-     * Get the user that owns the chat.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);

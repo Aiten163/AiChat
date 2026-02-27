@@ -81,7 +81,6 @@
 @auth
     <script type="module" src="{{ asset('js/app.js') }}"></script>
 @else
-    <!-- Emergency fix script -->
     <script>
         function emergencyModalFix() {
             console.log('Running emergency modal fix...');

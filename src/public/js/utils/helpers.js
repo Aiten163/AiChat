@@ -1,4 +1,3 @@
-// Вспомогательные функции
 export function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return unsafe

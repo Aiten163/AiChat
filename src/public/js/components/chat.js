@@ -3,7 +3,7 @@ import { escapeHtml } from '../utils/helpers.js';
 export class ChatManager {
     constructor() {
         this.currentChatId = this.getCurrentChatIdFromURL();
-        this.highlightedElements = new Set(); // Трекер подсвеченных элементов
+        this.highlightedElements = new Set();
 
         this.initMarkdownRenderer();
         this.init();
@@ -11,7 +11,6 @@ export class ChatManager {
     resetHighlighting() {
         if (typeof hljs === 'undefined') return;
 
-        // Сбрасываем подсветку со всех зарегистрированных элементов
         this.highlightedElements.forEach(element => {
             if (element && element.parentNode) {
                 element.removeAttribute('data-highlighted');
@@ -20,23 +19,17 @@ export class ChatManager {
         this.highlightedElements.clear();
     }
 
-    /**
-     * Безопасная подсветка синтаксиса
-     */
     applySyntaxHighlighting() {
         if (typeof hljs === 'undefined') {
             return;
         }
 
-        // Сначала сбрасываем предыдущую подсветку
         this.resetHighlighting();
 
-        // Находим все блоки кода, которые еще не подсвечены
         const codeBlocks = document.querySelectorAll('pre code:not([data-highlighted])');
 
         codeBlocks.forEach((block) => {
             try {
-                // Помечаем блок как подсвеченный перед обработкой
                 block.setAttribute('data-highlighted', 'true');
                 this.highlightedElements.add(block);
 
@@ -49,7 +42,6 @@ export class ChatManager {
     }
 
     initMarkdownRenderer() {
-        // Проверяем, что библиотеки загружены
         if (typeof marked === 'undefined') {
             return;
         }
@@ -58,7 +50,6 @@ export class ChatManager {
             return;
         }
 
-        // Настраиваем Marked для рендеринга Markdown
         marked.setOptions({
             highlight: (code, lang) => {
                 if (lang && hljs.getLanguage(lang)) {
@@ -89,7 +80,6 @@ export class ChatManager {
 
         this.loadChatHistory(this.currentChatId);
 
-        // ДОБАВЛЯЕМ ЭТУ СТРОКУ - инициализируем управление layout
         this.initLayoutHeights();
     }
     updateMessageContent(messageElement, content) {
@@ -223,9 +213,6 @@ export class ChatManager {
     }
 
 
-    /**
-     * Показывает сообщение об ошибке
-     */
     showError(message) {
         const historyContainer = document.getElementById('history-container');
         if (!historyContainer) return;
@@ -247,10 +234,8 @@ export class ChatManager {
                 return this.escapeAndFormatText(text);
             }
 
-            // Рендерим Markdown
             let rendered = marked.parse(text);
 
-            // Добавляем кнопки копирования для блоков кода
             rendered = this.addCopyButtonsToCodeBlocks(rendered);
 
             return rendered;
@@ -269,7 +254,6 @@ export class ChatManager {
             if (codeBlock) {
                 const language = this.getCodeLanguage(codeBlock);
 
-                // Создаем заголовок с кнопкой копирования
                 const header = document.createElement('div');
                 header.className = 'code-block-header';
                 header.innerHTML = `
@@ -280,10 +264,8 @@ export class ChatManager {
                 </button>
             `;
 
-                // Вставляем заголовок в начало pre блока
                 pre.insertBefore(header, pre.firstChild);
 
-                // Убедимся, что у pre правильные стили
                 pre.style.margin = '1em 0';
                 pre.style.borderRadius = '8px';
                 pre.style.overflow = 'hidden';
@@ -294,16 +276,13 @@ export class ChatManager {
 
         return tempDiv.innerHTML;
     }
-    // В методе getCodeLanguage обновляем логику определения языка
     getCodeLanguage(codeBlock) {
         const className = codeBlock.className || '';
 
-        // Ищем язык в классах
         const match = className.match(/language-(\w+)/);
         if (match) {
             const lang = match[1].toLowerCase();
 
-            // Маппинг языков для красивого отображения
             const languageMap = {
                 'js': 'JavaScript',
                 'javascript': 'JavaScript',
@@ -345,7 +324,6 @@ export class ChatManager {
             return languageMap[lang] || lang.toUpperCase();
         }
 
-        // Пытаемся определить язык по содержимому
         const content = codeBlock.textContent || '';
         if (content.includes('<?php') || content.includes('$') && content.includes(';')) {
             return 'PHP';
@@ -377,23 +355,19 @@ export class ChatManager {
     }
 
     bindCopyButtons() {
-        // Кнопки копирования для всего сообщения - ИСПРАВЛЕННЫЙ
         const copyButtons = document.querySelectorAll('.copy-button');
         copyButtons.forEach(button => {
             button.addEventListener('click', (e) => {
                 e.stopPropagation();
 
-                // Вместо data-text атрибута, извлекаем текст из отрендеренного содержимого
                 const messageContent = button.closest('.message').querySelector('.message-content');
                 if (messageContent) {
-                    // Извлекаем чистый текст из HTML
                     const textToCopy = this.extractTextFromHTML(messageContent.innerHTML);
                     this.copyToClipboard(textToCopy, button);
                 }
             });
         });
 
-        // Кнопки копирования для блоков кода
         const codeCopyButtons = document.querySelectorAll('.code-copy-button');
         codeCopyButtons.forEach(button => {
             button.addEventListener('click', (e) => {
@@ -410,30 +384,25 @@ export class ChatManager {
         });
     }
 
-// Добавляем вспомогательный метод для извлечения текста из HTML
     extractTextFromHTML(html) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
 
-        // Рекурсивно извлекаем текст из всех узлов
         const extractText = (node) => {
             if (node.nodeType === Node.TEXT_NODE) {
                 return node.textContent || '';
             }
 
             if (node.nodeType === Node.ELEMENT_NODE) {
-                // Для блоков кода сохраняем форматирование
                 if (node.tagName === 'PRE' || node.tagName === 'CODE') {
                     return '\n```\n' + (node.textContent || '') + '\n```\n';
                 }
 
-                // Для других элементов обрабатываем детей
                 let text = '';
                 for (const child of node.childNodes) {
                     text += extractText(child);
                 }
 
-                // Добавляем переносы строк для блочных элементов
                 const blockElements = ['DIV', 'P', 'BR', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'];
                 if (blockElements.includes(node.tagName)) {
                     text += '\n';
@@ -447,7 +416,6 @@ export class ChatManager {
 
         let text = extractText(tempDiv);
 
-        // Очищаем лишние переносы строк
         text = text.replace(/\n{3,}/g, '\n\n').trim();
 
         return text;
@@ -457,7 +425,6 @@ export class ChatManager {
         try {
             await navigator.clipboard.writeText(text);
 
-            // Визуальная обратная связь
             const originalHTML = button.innerHTML;
 
             if (button.classList.contains('code-copy-button')) {
@@ -474,7 +441,6 @@ export class ChatManager {
             }, 2000);
 
         } catch (err) {
-            // Fallback для старых браузеров
             const textArea = document.createElement('textarea');
             textArea.value = text;
             document.body.appendChild(textArea);
@@ -506,7 +472,6 @@ export class ChatManager {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type === 'user' || type === 'user-message' ? 'user-message' : 'ai-message'}`;
 
-        // Добавляем кнопку копирования
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-button';
         copyButton.title = 'Скопировать сообщение';
@@ -521,7 +486,6 @@ export class ChatManager {
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
 
-        // Для AI сообщений используем Markdown, для пользователей - простой текст
         if (type === 'user' || type === 'user-message') {
             messageContent.innerHTML = this.escapeAndFormatText(messageText);
         } else {
@@ -532,12 +496,10 @@ export class ChatManager {
         messageDiv.appendChild(messageContent);
         historyContainer.appendChild(messageDiv);
 
-        // Применяем подсветку синтаксиса для нового сообщения
         setTimeout(() => {
             this.applySyntaxHighlighting();
         }, 0);
 
-        // ДОБАВЛЯЕМ ВЫЗОВ ПЕРЕСЧЕТА LAYOUT
         this.recalculateLayout();
     }
     convertToString(value) {
@@ -598,49 +560,17 @@ export class ChatManager {
         }
     }
 
-    showError(message) {
-        const historyContainer = document.getElementById('history-container');
-        if (historyContainer) {
-            const errorMessage = this.convertToString(message);
-            historyContainer.innerHTML = `
-                <div class="text-center text-danger p-4">
-                    ${escapeHtml(errorMessage)}
-                </div>
-            `;
-        }
-    }
-    showError(message) {
-        const historyContainer = document.getElementById('history-container');
-        if (historyContainer) {
-            const errorMessage = this.convertToString(message);
-            historyContainer.innerHTML = `
-                <div class="text-center text-danger p-4">
-                    ${escapeHtml(errorMessage)}
-                </div>
-            `;
-        }
-    }
-
-    // === ДОБАВЛЯЕМ НОВЫЕ МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ LAYOUT ===
-
-    /**
-     * Инициализация управления высотами layout
-     */
     initLayoutHeights() {
-        // Вызываем сразу при инициализации
         this.updateLayoutHeights();
 
-        // Добавляем обработчики событий
         window.addEventListener('resize', () => {
             setTimeout(() => this.updateLayoutHeights(), 100);
         });
 
-        // Также обновляем при полной загрузке страницы
         window.addEventListener('load', () => {
             setTimeout(() => this.updateLayoutHeights(), 200);
         });
 
-        // Обновляем при изменении содержимого
         const observer = new MutationObserver(() => {
             this.updateLayoutHeights();
         });
@@ -662,7 +592,7 @@ export class ChatManager {
 
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
-        messageContent.textContent = ''; // Начинаем с пустого текста
+        messageContent.textContent = '';
 
         messageDiv.appendChild(messageContent);
         historyContainer.appendChild(messageDiv);
@@ -702,9 +632,6 @@ export class ChatManager {
         this.scrollToBottom();
     }
 
-    /**
-     * Обновление высот контейнеров для предотвращения перекрытия
-     */
     updateLayoutHeights() {
         const header = document.querySelector('header');
         const container = document.getElementById('container');
@@ -718,22 +645,17 @@ export class ChatManager {
         const headerHeight = header.offsetHeight;
         const inputAreaHeight = inputArea.offsetHeight;
 
-        // Устанавливаем высоту основного контейнера
         container.style.height = `calc(100vh - ${headerHeight}px)`;
         container.style.minHeight = `calc(100vh - ${headerHeight}px)`;
 
-        // Устанавливаем высоту контейнера истории
         historyContainer.style.height = `calc(100% - ${inputAreaHeight}px)`;
         historyContainer.style.maxHeight = `calc(100% - ${inputAreaHeight}px)`;
 
-        // Принудительно применяем flex layout
         container.style.display = 'flex';
         container.style.flexDirection = 'column';
     }
 
-    /**
-     * Пересчет layout после добавления сообщения
-     */
+
     recalculateLayout() {
         setTimeout(() => {
             this.updateLayoutHeights();

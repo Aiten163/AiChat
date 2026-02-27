@@ -77,7 +77,6 @@ export class InputHandler {
     async sendMessageToServer(message, model) {
         let currentChatId = this.chatManager.getCurrentChatId();
 
-        // Если нет активного чата, создаем временный чат
         if (!currentChatId || currentChatId === '/' || currentChatId === 'new-chat') {
             if (window.app && window.app.sidebar) {
                 window.app.sidebar.createNewChat();
@@ -86,7 +85,6 @@ export class InputHandler {
             }
         }
 
-        // Добавляем сообщение пользователя в историю
         this.chatManager.addMessage(message, 'user');
 
         try {
@@ -108,7 +106,6 @@ export class InputHandler {
 
             const data = await response.json();
 
-            // Если есть ошибка в ответе - бросаем исключение
             if (!response.ok || data.error) {
                 throw new Error(data.error || `Ошибка сервера: ${response.status}`);
             }
@@ -116,28 +113,23 @@ export class InputHandler {
             let responseText = '';
             let newChatId = currentChatId;
 
-            // Обрабатываем успешный ответ сервера
             if (data.response !== undefined && data.response !== null) {
                 responseText = this.convertToString(data.response);
 
-                // Если сервер вернул новый ID чата
                 if (data.chat_id && data.chat_id !== currentChatId && currentChatId === 'new-chat') {
                     newChatId = data.chat_id;
 
-                    // Обновляем UI с новым ID чата
                     if (window.app && window.app.sidebar) {
                         const chatName = data.chat_name || 'Новый чат';
                         window.app.sidebar.updateTempChatToServerChat(currentChatId, newChatId, chatName);
                     }
 
-                    // Обновляем ID в менеджере
                     this.chatManager.updateChatId(currentChatId, newChatId);
                 }
             } else {
                 responseText = 'Неизвестный формат ответа';
             }
 
-            // Добавляем ответ ассистента в историю
             this.chatManager.addMessage(responseText, 'assistant');
 
         } catch (error) {
@@ -145,13 +137,10 @@ export class InputHandler {
             this.chatManager.addMessage(errorMessage, 'error');
         }
     }
-    /**
-     * Отправка сообщения с потоковым получением ответа
-     */
+
     async sendMessageStream(message, model) {
         let currentChatId = this.chatManager.getCurrentChatId();
 
-        // Если нет активного чата, создаем временный чат
         if (!currentChatId || currentChatId === '/' || currentChatId === 'new-chat') {
             if (window.app && window.app.sidebar) {
                 window.app.sidebar.createNewChat();
@@ -160,10 +149,8 @@ export class InputHandler {
             }
         }
 
-        // Добавляем сообщение пользователя в историю
         this.chatManager.addMessage(message, 'user');
 
-        // Создаем элемент для потокового ответа
         const assistantMessageElement = this.chatManager.createStreamingMessage();
         let accumulatedText = '';
 
@@ -184,9 +171,7 @@ export class InputHandler {
             });
 
 
-            // ⚡ ПРОВЕРЯЕМ HTTP СТАТУС ОШИБКИ
             if (!response.ok) {
-                // Если статус 500, пытаемся прочитать streaming ошибку
                 if (response.status === 500) {
                     await this.handleStreamError(response, assistantMessageElement);
                     return;
@@ -194,7 +179,6 @@ export class InputHandler {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Чтение Server-Sent Events
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
@@ -241,7 +225,6 @@ export class InputHandler {
                                     return;
 
                                 case 'error':
-                                    // ⚡ ОБРАБОТКА ОШИБОК ИЗ STREAMING
                                     this.chatManager.updateStreamingMessage(assistantMessageElement,
                                         '❌ ' + eventData.error, 'error');
                                     return;
@@ -291,9 +274,7 @@ export class InputHandler {
                 '❌ Ошибка сервера', 'error');
         }
     }
-    /**
-     * Обновление ID чата
-     */
+
     updateChatId(oldChatId, newChatId, chatName) {
 
         if (window.app && window.app.sidebar) {
@@ -301,9 +282,8 @@ export class InputHandler {
         }
         this.chatManager.updateChatId(oldChatId, newChatId);
 
-        // ⚡ Обновляем URL если это новый чат
         if (oldChatId === 'new-chat') {
-            window.history.replaceState({}, '', `/chat/${newChatId}`);
+            window.history.replaceState({}, '', `/${newChatId}`);
         }
     }
 

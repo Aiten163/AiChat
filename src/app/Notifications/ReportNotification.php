@@ -32,18 +32,16 @@ class ReportNotification extends Notification
         $userName = $this->user ? $this->user->name : 'Анонимный пользователь';
         $shortMessage = \Str::limit($this->message, 50);
 
-        // Создаем URL для детальной страницы отчета
         $detailUrl = route('platform.reports.detail', [
             'notification' => $this->id
         ]);
 
-        // Возвращаем массив с данными для базы
         return [
             'title' => 'Новое обращение в техподдержку',
             'message' => "Пользователь: {$userName}\nСообщение: {$shortMessage}",
             'action' => $detailUrl,
             'type' => 'info',
-            // Дополнительные данные для детальной страницы
+
             'report_data' => [
                 'user_name' => $this->user ? $this->user->name : 'Анонимный пользователь',
                 'user_id' => $this->user ? $this->user->id : null,

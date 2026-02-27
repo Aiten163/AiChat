@@ -29,7 +29,6 @@ class ChatController extends Controller
             return response()->json(['error' => 'Доступ запрещен'], 403);
         }
 
-        // Убедитесь, что поле 'show' существует в таблице chats
         $updated = $chat->update(['show' => false]);
 
         if ($updated) {

@@ -1,4 +1,3 @@
-<!-- Простая форма редактирования (не модалка) -->
 <div id="editForm" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; box-shadow: 0 0 10px rgba(0,0,0,0.3);">
     <form action="{{ route('platform.base-prompts.update') }}" method="POST">
         @csrf

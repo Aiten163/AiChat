@@ -11,7 +11,6 @@ class App {
     }
 
     init() {
-        // Ждем загрузки DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.initializeApp());
         } else {
@@ -21,16 +20,12 @@ class App {
 
     initializeApp() {
         try {
-            // Инициализируем менеджер чата
             this.chatManager = new ChatManager();
 
-            // Инициализируем обработчик ввода
             this.inputHandler = new InputHandler(this.chatManager);
 
-            // Инициализируем сайдбар
             this.sidebar = new Sidebar(this.chatManager);
 
-            // Делаем доступным глобально для отладки
             window.app = this;
 
         } catch (error) {
@@ -38,5 +33,4 @@ class App {
     }
 }
 
-// Запускаем приложение
 new App();

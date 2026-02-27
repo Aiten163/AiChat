@@ -71,7 +71,6 @@ class BasePromptScreen extends Screen
                     }),
             ]),
 
-            // Форма создания
             Layout::modal('createModal', [
                 Layout::rows([
                     Input::make('name')
@@ -88,7 +87,6 @@ class BasePromptScreen extends Screen
                 ->closeButton('Отмена')
                 ->method('create'),
 
-            // Форма редактирования
             Layout::modal('editModal', [
                 Layout::rows([
                     Input::make('id')->type('hidden'),
@@ -108,24 +106,13 @@ class BasePromptScreen extends Screen
         ];
     }
 
-    /**
-     * Показать форму создания
-     */
-    public function createForm()
-    {
-        // Просто открывает модальное окно
-    }
 
-    /**
-     * Показать форму редактирования
-     */
     public function editForm(Request $request)
     {
         $id = $request->get('id');
         $prompt = BasePrompt::find($id);
 
         if ($prompt) {
-            // Данные автоматически подставятся в форму через модальное окно
             return [];
         }
 
@@ -133,9 +120,6 @@ class BasePromptScreen extends Screen
         return [];
     }
 
-    /**
-     * Создать промт
-     */
     public function create(Request $request)
     {
         $request->validate([
@@ -151,9 +135,6 @@ class BasePromptScreen extends Screen
         Alert::success('Промт создан');
     }
 
-    /**
-     * Обновить промт
-     */
     public function update(Request $request)
     {
         $request->validate([
@@ -175,9 +156,6 @@ class BasePromptScreen extends Screen
         }
     }
 
-    /**
-     * Удалить промт
-     */
     public function remove(Request $request)
     {
         $prompt = BasePrompt::find($request->id);

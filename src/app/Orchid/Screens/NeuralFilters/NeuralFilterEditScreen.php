@@ -81,6 +81,7 @@ class NeuralFilterEditScreen extends Screen
 
     public function save(NeuralFilter $filter, Request $request)
     {
+        \Cache::forget('neuralFilter');
         $data = $request->get('filter');
         $neuralId = $data['neural_id'] ?? $filter->neural_id;
 
@@ -109,6 +110,7 @@ class NeuralFilterEditScreen extends Screen
 
     public function remove(NeuralFilter $filter)
     {
+        \Cache::forget('neuralFilter');
         $filter->delete();
 
         Alert::success('Фильтр удален.');

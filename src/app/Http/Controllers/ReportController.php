@@ -13,7 +13,6 @@ class ReportController extends Controller
 {
     public function store(Request $request)
     {
-        // Проверяем, что запрос ожидает JSON
         if (!$request->wantsJson()) {
             return response()->json([
                 'success' => false,
@@ -21,7 +20,6 @@ class ReportController extends Controller
             ], 400);
         }
 
-        // Валидация данных
         $validator = Validator::make($request->all(), [
             'message' => 'required|string|min:5|max:2000',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -44,11 +42,9 @@ class ReportController extends Controller
         try {
             $imagePath = null;
 
-            // Обработка изображения, если оно есть
             if ($request->hasFile('image') && $request->file('image')->isValid()) {
                 $image = $request->file('image');
                 $fileName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-                // Сохраняем в PUBLIC директорию
                 $imagePath = $image->storeAs('reports', $fileName, 'public');
 
                 \Log::info('Image saved to public storage', [
@@ -58,7 +54,6 @@ class ReportController extends Controller
             }
 
             $user = auth()->user();
-            // Отправляем уведомление админам
             $admins = User::getAdmins();
             foreach ($admins as $admin) {
                 $admin->notify(new ReportNotification($user, $request->message, $imagePath));

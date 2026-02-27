@@ -36,10 +36,8 @@ class ReportDetailScreen extends Screen
                     'image_path' => $reportData['image_path'] ?? null,
                 ]);
 
-                // Генерируем PUBLIC URL для изображения
                 $imageUrl = null;
                 if (!empty($reportData['image_path'])) {
-                    // Просто получаем URL из public storage
                     $imageUrl = Storage::disk('public')->url($reportData['image_path']);
 
                     \Log::info('Generated image URL', [
@@ -54,7 +52,7 @@ class ReportDetailScreen extends Screen
                     'user_id' => $reportData['user_id'] ?? null,
                     'message' => $reportData['message'] ?? '',
                     'image_path' => $reportData['image_path'] ?? null,
-                    'image_url' => $imageUrl, // Просто URL, не base64
+                    'image_url' => $imageUrl,
                     'created_at' => $notification->created_at->format('d.m.Y H:i'),
                 ];
 
@@ -99,7 +97,6 @@ class ReportDetailScreen extends Screen
             ]),
         ];
 
-        // Всегда добавляем блок изображения (даже если его нет)
         $layouts[] = Layout::view('admin.report-image', [
             'report' => $this->report,
         ]);

@@ -67,7 +67,7 @@ class MessagesTable extends Table
                     'system' => 'Система',
                 ])
                 ->render(function (ChatMessage $message) {
-                    return $message->role; // Убрал Str::limit, чтобы показывать полную роль
+                    return $message->role;
                 }),
 
             TD::make('created_at', 'Дата и время')

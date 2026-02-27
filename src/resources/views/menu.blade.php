@@ -1,6 +1,4 @@
-<!-- Выдвижное меню -->
 <div id="sidebar" class="bg-dark border-end border-secondary">
-    <!-- Информация пользователя (только для авторизованных) -->
     @auth
         <div class="user-info-sidebar">
             <div class="user-name">
@@ -34,7 +32,7 @@
         </button>
     </div>
 
-    <!-- Modal -->
+
     <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true" style="z-index: 10000">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content bg-dark text-light">
@@ -50,7 +48,6 @@
                             <label for="messageText" class="form-label">Сообщение *</label>
                             <textarea class="form-control bg-dark text-light border-secondary" id="messageText" rows="4" placeholder="Опишите вашу проблему..." required></textarea>
 
-                            <!-- Иконка прикрепления изображения -->
                             <div class="position-absolute" style="bottom: 10px; right: 10px;">
                                 <input type="file" class="d-none" id="imageInput" accept="image/*">
                                 <button type="button" class="btn btn-sm btn-outline-light border-0" id="attachImageIcon" title="Прикрепить изображение">
@@ -59,7 +56,6 @@
                             </div>
                         </div>
 
-                        <!-- Контейнер для превью изображения -->
                         <div id="imagePreviewContainer"></div>
                     </form>
                 </div>
@@ -96,5 +92,4 @@
     </ul>
 </div>
 
-<!-- Оверлей для закрытия меню на мобильных -->
 <div id="sidebar-overlay" class="sidebar-overlay"></div>

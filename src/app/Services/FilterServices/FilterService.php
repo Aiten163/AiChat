@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 class FilterService
 {
     private NeuralFilter | null  $neuralFilter = null;
+    private ?string $reason;
 
     public function __construct($neural)
     {
@@ -25,6 +26,7 @@ class FilterService
 
     public function filter($text): bool
     {
+        Log::info($this->neuralFilter);
         if ($this->neuralFilter === null) {
             return true;
         }
@@ -40,4 +42,6 @@ class FilterService
         }
         return true;
     }
+
+
 }

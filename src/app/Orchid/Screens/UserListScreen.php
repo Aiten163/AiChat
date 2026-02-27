@@ -96,7 +96,6 @@ class UserListScreen extends Screen
         $data = $request->get('user');
 
         if (!empty($data['id'])) {
-            // Update existing user
             $user = User::findOrFail($data['id']);
             $user->update([
                 'name' => $data['name'],
@@ -104,7 +103,6 @@ class UserListScreen extends Screen
             ]);
             Toast::success('Пользователь обновлен');
         } else {
-            // Create new user
             User::create([
                 'name' => $data['name'],
                 'is_admin' => $data['is_admin'] ?? false
@@ -121,7 +119,6 @@ class UserListScreen extends Screen
         $userId = $request->get('user_id');
 
         if ($userId) {
-            // Удаляем активность пользователя перед удалением самого пользователя
             UserActivity::where('user_id', $userId)->delete();
             User::findOrFail($userId)->delete();
             Toast::info('Пользователь удален');

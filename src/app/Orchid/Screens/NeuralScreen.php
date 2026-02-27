@@ -33,7 +33,7 @@ class NeuralScreen extends Screen
     public function query(): iterable
     {
         return [
-            'neurals' => Neural::with('basePrompt') // Добавляем eager loading
+            'neurals' => Neural::with('basePrompt')
             ->filters()
                 ->defaultSort('id')
                 ->paginate(),
@@ -77,7 +77,6 @@ class NeuralScreen extends Screen
             NeuralTable::class,
         ];
 
-        // Добавляем модальные окна только если Ollama доступна
         if ($this->ollamaAvailable) {
             $layouts[] = Layout::modal('createNeural', Layout::rows([
                 Select::make('name')
@@ -109,7 +108,6 @@ class NeuralScreen extends Screen
                     ->value(5)
                     ->help('Сколько предыдущих сообщений учитывать в контексте'),
 
-                // Добавляем селектор для выбора basePrompt
                 Select::make('base_prompt_id')
                     ->options($this->getBasePromptsOptions())
                     ->title('Базовый промт')
@@ -129,7 +127,6 @@ class NeuralScreen extends Screen
             $layouts[] = Layout::modal('editNeural', Layout::rows([
                 Input::make('neural.id')->type('hidden'),
 
-                // Поле name делаем disabled при редактировании
                 Input::make('neural.name')
                     ->title('Системное название')
                     ->placeholder('Например: gpt-4')
@@ -156,7 +153,6 @@ class NeuralScreen extends Screen
                     ->min(1)
                     ->help('Сколько предыдущих сообщений учитывать в контексте'),
 
-                // Добавляем селектор для выбора basePrompt при редактировании
                 Select::make('neural.base_prompt_id')
                     ->options($this->getBasePromptsOptions())
                     ->title('Базовый промт')
@@ -172,7 +168,6 @@ class NeuralScreen extends Screen
 
             ]))->async('asyncGetNeural')->title('Редактировать нейросеть')->applyButton('Сохранить');
         } else {
-            // Показываем уведомление о недоступности Ollama
             $layouts[] = Layout::view('admin.ollama-unavailable');
         }
 

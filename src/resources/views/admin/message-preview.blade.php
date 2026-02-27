@@ -12,7 +12,6 @@
     </div>
 </div>
 
-<!-- Modal -->
 <div class="modal fade" id="messageModal-{{ $messageId }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">

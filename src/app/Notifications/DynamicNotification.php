@@ -8,9 +8,6 @@ use Illuminate\Support\Facades\Storage;
 
 abstract class DynamicNotification extends Notification
 {
-    /**
-     * Устанавливаем динамические настройки почты
-     */
     protected function setDynamicMailConfig(): bool
     {
         try {
@@ -36,9 +33,6 @@ abstract class DynamicNotification extends Notification
         return false;
     }
 
-    /**
-     * Получить настройки почты
-     */
     protected function getMailSettings(): ?array
     {
         try {
@@ -52,9 +46,6 @@ abstract class DynamicNotification extends Notification
         return null;
     }
 
-    /**
-     * Проверить, доступны ли динамические настройки
-     */
     protected function hasDynamicConfig(): bool
     {
         return Storage::disk('private')->exists('mail_settings.json');

@@ -18,9 +18,7 @@ class ProhibitedMessageGet extends Notification
     private string $message;
     private User $user;
     private string $reason;
-    /**
-     * Create a new notification instance.
-     */
+
     public function __construct($user, $message, $reason)
     {
         $this->user = User::find($user);
@@ -28,11 +26,6 @@ class ProhibitedMessageGet extends Notification
         $this->reason = $reason;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return [DashboardChannel::class, 'mail'];

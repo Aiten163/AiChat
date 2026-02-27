@@ -30,9 +30,6 @@ class Neural extends Model
         'countLastMessage' => 'integer',
     ];
 
-    /**
-     * Доступные фильтры
-     */
     protected $allowedFilters = [
         'id' => Where::class,
         'name' => Like::class,
@@ -41,9 +38,6 @@ class Neural extends Model
         'countLastMessage' => Where::class,
     ];
 
-    /**
-     * Доступные сортировки
-     */
     protected $allowedSorts = [
         'id',
         'name',

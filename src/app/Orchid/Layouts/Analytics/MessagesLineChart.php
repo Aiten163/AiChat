@@ -14,12 +14,26 @@ class MessagesLineChart extends Chart
     protected $height = 300;
 
     /**
+     * Chart title.
+     *
+     * @var string
+     */
+    protected $title = 'Количество сообщений по дням';
+
+    /**
+     * Data source.
+     *
+     * @var string
+     */
+    protected $target = 'chart';
+
+    /**
      * Configuring line.
      *
      * @var array
      */
     protected $lineOptions = [
-        'spline'     => 1,
+        'spline'     => 0,
         'regionFill' => 1,
         'hideDots'   => 0,
         'hideLine'   => 0,
@@ -28,11 +42,23 @@ class MessagesLineChart extends Chart
     ];
 
     /**
-     * Add a color to the chart.
+     * Color lines.
      *
-     * @var string|array
+     * @var string
      */
-    protected $colors = [
-        '#3578e5',
-    ];
+    protected $color = '#2C5CC3';
+
+    /**
+     * To highlight certain values on the Y axis, markers can be set.
+     * They will shown as dashed lines on the graph.
+     */
+    protected function markers(): ?array
+    {
+        return [
+            [
+                'label'   => 'Medium',
+                'value'   => 40,
+            ],
+        ];
+    }
 }

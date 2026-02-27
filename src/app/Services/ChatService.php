@@ -34,15 +34,10 @@ class ChatService
         $this->createOrFindChat($chatID);
     }
 
-    /**
-     * Основной метод - возвращает Response для streaming
-     */
     public function processMessage()
     {
-        // Подготавливаем конверсацию
         $conversation = $this->prepareConversation();
 
-        // Сохраняем сообщение пользователя
         ChatMessage::create([
             'chat_id' => $this->chat->id,
             'message' => $this->text,
@@ -50,7 +45,6 @@ class ChatService
             'created_at' => now()
         ]);
 
-        // Создаем потоковый ответ
         return response()->stream(function () use ($conversation) {
             $this->streamWithChatHistory($conversation);
         }, 200, [
@@ -60,9 +54,6 @@ class ChatService
         ]);
     }
 
-    /**
-     * Потоковая передача с полной историей чата
-     */
     private function streamWithChatHistory(array $conversation): void
     {
         $fullResponse = '';
@@ -76,7 +67,6 @@ class ChatService
                     'chat_name' => $this->chat->name
                 ]) . "\n\n";
             flush();
-            // Получаем ответ от Ollama
             $response = $this->OllamaModel
                 ->options([
                     'temperature' => $this->temperature,
@@ -84,7 +74,6 @@ class ChatService
                 ->stream(true)
                 ->chat($conversation);
 
-            // Обрабатываем поток
             $responses = Ollama::processStream($response->getBody(), function($data) use (&$fullResponse) {
                 if (isset($data['message']['content'])) {
                     $content = $data['message']['content'];
@@ -104,7 +93,6 @@ class ChatService
                 return true;
             });
 
-            // Сохраняем полный ответ
             if (!empty($fullResponse)) {
                 $this->saveFinalResponse($fullResponse);
 
@@ -132,9 +120,6 @@ class ChatService
         }
     }
 
-    /**
-     * Подготовка конверсации с усиленным системным промптом
-     */
     private function prepareConversation(): array
     {
         $currentMessage = collect([
@@ -152,15 +137,11 @@ class ChatService
             ];
         })->toArray();
 
-        // Добавляем системный промпт в начало
         $conversation = $this->addSystemPromptAsFirst($conversation);
 
         return $conversation;
     }
 
-    /**
-     * Добавляем системный промпт в НАЧАЛО
-     */
     private function addSystemPromptAsFirst(array $conversation): array
     {
         $systemPrompt = [
@@ -173,9 +154,6 @@ class ChatService
         return $conversation;
     }
 
-    /**
-     * Усиленный системный промпт
-     */
     private function getEnhancedSystemPrompt(): string
     {
         if (isset($this->neural->basePrompt)) {
@@ -199,9 +177,6 @@ class ChatService
 **ВАЖНО:** Эти правила действуют на ВСЕ ответы без исключений! Нарушение этих правил недопустимо.";
     }
 
-    /**
-     * Сохраняем финальный ответ
-     */
     private function saveFinalResponse(string $response): void
     {
         ChatMessage::create([
@@ -234,7 +209,7 @@ class ChatService
                 ]);
                 $this->isNewChat = true;
             } else {
-                $this->isNewChat = false; // ⚡ Важно: указываем что чат существующий
+                $this->isNewChat = false;
             }
         }
     }

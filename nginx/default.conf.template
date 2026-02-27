@@ -4,25 +4,20 @@ server {
     root /var/www/html/public;
     index index.php index.html index.htm;
 
-    # Защищаем системные файлы
     location ~ /\. {
         deny all;
         return 403;
     }
 
-    # Специальный блок для изображений отчетов ДО основного правила
     location ~ ^/admin/reports/image/ {
         try_files $uri $uri/ /index.php?$query_string;
 
-        # Увеличиваем таймауты
         fastcgi_read_timeout 300;
 
-        # Отключаем кэширование для динамических изображений
         expires -1;
         add_header Cache-Control "no-cache, private";
     }
 
-    # Специальный блок для Orchid assets ДО статических файлов
     location ^~ /vendor/orchid/ {
         allow all;
         access_log off;
@@ -31,14 +26,12 @@ server {
         try_files $uri =404;
     }
 
-    # Статические файлы (кроме Orchid)
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
         try_files $uri =404;
     }
 
-    # Основное правило для PHP
     location / {
         # Увеличиваем таймауты
         fastcgi_read_timeout 300;
@@ -46,7 +39,6 @@ server {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    # Обработка PHP
     location ~ \.php$ {
         try_files $uri =404;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
@@ -62,11 +54,9 @@ server {
         fastcgi_buffer_size 32k;
         fastcgi_read_timeout 300;
 
-        # Отключаем буферизацию для изображений
         fastcgi_buffering off;
     }
 
-    # Deny access to .htaccess files
     location ~ /\.ht {
         deny all;
     }

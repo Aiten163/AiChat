@@ -1,4 +1,3 @@
-<!-- Модальное окно подтверждения удаления чата -->
 <div class="modal fade" id="deleteChatModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark border border-secondary">
@@ -27,7 +26,6 @@
 <div class="container-fluid">
     <div class="row align-items-center">
         <div class="col d-flex align-items-center">
-            <!-- Кнопка меню -->
             <button id="menu-toggle" class="btn btn-outline-light btn-sm me-2">
                 <i class="bi bi-list"></i>
             </button>

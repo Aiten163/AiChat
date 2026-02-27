@@ -18,21 +18,18 @@ export class Sidebar {
         this.markCurrentChat();
         this.bindChatActions();
         this.bindModalEvents();
-        this.bindSupportModalEvents(); // Добавляем привязку событий для модалки поддержки
+        this.bindSupportModalEvents();
     }
 
     bindEvents() {
-        // Открытие/закрытие меню
         if (this.menuToggle) {
             this.menuToggle.addEventListener('click', () => this.toggleSidebar());
         }
 
-        // Кнопка нового чата
         if (this.newChatBtn) {
             this.newChatBtn.addEventListener('click', () => this.createNewChat());
         }
 
-        // Закрытие меню при клике на оверлей
         if (this.sidebarOverlay) {
             this.sidebarOverlay.addEventListener('click', () => this.closeSidebar());
         }
@@ -67,13 +64,11 @@ export class Sidebar {
             });
         }
 
-        // Обработчик для иконки прикрепления изображения
         const attachImageIcon = document.getElementById('attachImageIcon');
         if (attachImageIcon) {
             attachImageIcon.addEventListener('click', () => this.triggerImageInput());
         }
 
-        // Обработчик для выбора изображения
         const imageInput = document.getElementById('imageInput');
         if (imageInput) {
             imageInput.addEventListener('change', (e) => this.handleImageSelect(e));
@@ -91,7 +86,6 @@ export class Sidebar {
             form.reset();
         }
 
-        // Удаляем превью изображения
         const previewContainer = document.getElementById('imagePreviewContainer');
         if (previewContainer) {
             previewContainer.remove();
@@ -107,7 +101,6 @@ export class Sidebar {
             return;
         }
 
-        // Показываем индикатор загрузки
         this.setSupportButtonState('loading');
 
         try {
@@ -115,7 +108,6 @@ export class Sidebar {
             formData.append('message', message.value.trim());
             formData.append('_token', this.chatManager.getCsrfToken());
 
-            // Если есть изображение, добавляем его
             if (imageFile) {
                 formData.append('image', imageFile);
             }
@@ -129,11 +121,9 @@ export class Sidebar {
                 body: formData
             });
 
-            // Проверяем Content-Type перед парсингом JSON
             const contentType = response.headers.get('content-type');
 
             if (!contentType || !contentType.includes('application/json')) {
-                // Если сервер вернул не JSON, получаем текст для отладки
                 const textResponse = await response.text();
                 console.error('Server returned non-JSON response:', textResponse.substring(0, 200));
 
@@ -157,13 +147,11 @@ export class Sidebar {
             if (result.success) {
                 this.showSuccessNotification(result.message || 'Сообщение отправлено в техподдержку!');
 
-                // Закрываем модалку
                 const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
                 if (modal) {
                     modal.hide();
                 }
 
-                // Очищаем форму
                 this.clearSupportForm();
             } else {
                 throw new Error(result.error || 'Ошибка при отправке сообщения');
@@ -185,21 +173,18 @@ export class Sidebar {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Проверяем тип файла
         if (!file.type.startsWith('image/')) {
             this.showErrorNotification('Пожалуйста, выберите файл изображения (JPG, PNG, GIF)');
             this.clearImageInput();
             return;
         }
 
-        // Проверяем размер файла (максимум 5MB)
         if (file.size > 5 * 1024 * 1024) {
             this.showErrorNotification('Размер файла не должен превышать 5MB');
             this.clearImageInput();
             return;
         }
 
-        // Показываем превью изображения
         this.showImagePreview(file);
     }
     clearImageInput() {
@@ -212,7 +197,6 @@ export class Sidebar {
         const reader = new FileReader();
 
         reader.onload = (e) => {
-            // Создаем или находим контейнер для превью
             let previewContainer = document.getElementById('imagePreviewContainer');
             if (!previewContainer) {
                 previewContainer = document.createElement('div');
@@ -258,7 +242,6 @@ export class Sidebar {
             return;
         }
 
-        // Показываем индикатор загрузки
         this.setUploadButtonState('loading');
 
         try {
@@ -281,7 +264,6 @@ export class Sidebar {
                 this.showSuccessNotification('Изображение успешно загружено!');
                 this.clearImageForm();
 
-                // Если нужно обработать загруженное изображение
                 if (result.imageUrl) {
                     this.handleUploadedImage(result.imageUrl);
                 }
@@ -309,13 +291,9 @@ export class Sidebar {
         }
     }
     handleUploadedImage(imageUrl) {
-        // Здесь можно добавить логику для работы с загруженным изображением
-        // Например, вставить в чат или сохранить ссылку
         console.log('Изображение загружено:', imageUrl);
 
-        // Если нужно отправить изображение в текущий чат
         if (this.chatManager && this.chatManager.getCurrentChatId()) {
-            // this.chatManager.sendImageMessage(imageUrl);
         }
     }
     clearImageForm() {
@@ -350,8 +328,6 @@ export class Sidebar {
             confirmDeleteBtn.addEventListener('click', () => {
                 this.confirmDeleteChat();
             });
-
-            // Сбрасываем pending chat ID при закрытии модалки
             deleteChatModal.addEventListener('hidden.bs.modal', () => {
                 this.pendingDeleteChatId = null;
             });
@@ -396,7 +372,6 @@ export class Sidebar {
         const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
         if (!chatItem) return;
 
-        // Снимаем активный класс со всех чатов
         document.querySelectorAll('.chat-item').forEach(item => {
             item.classList.remove('active');
         });
@@ -627,25 +602,21 @@ export class Sidebar {
                 const deleteChatModal = bootstrap.Modal.getInstance(document.getElementById('deleteChatModal'));
                 deleteChatModal.hide();
 
-                // Удаляем чат из UI
                 const chatItem = document.querySelector(`.chat-item[data-chat-id="${chatId}"]`);
                 if (chatItem) {
                     chatItem.remove();
                 }
 
-                // Если удаленный чат был активным, переходим на главную
                 if (this.chatManager.getCurrentChatId() == chatId) {
                     window.location.href = '/';
                 }
 
-                // Показываем уведомление об успешном удалении
                 this.showSuccessNotification('Чат успешно удален');
             }
 
         } catch (error) {
             this.showErrorNotification('Ошибка при удалении чата');
 
-            // Закрываем модалку в случае ошибки
             const deleteChatModal = bootstrap.Modal.getInstance(document.getElementById('deleteChatModal'));
             deleteChatModal.hide();
         }
@@ -653,19 +624,15 @@ export class Sidebar {
         this.pendingDeleteChatId = null;
     }
 
-    // Показываем уведомление об успехе
     showSuccessNotification(message) {
         this.showNotification(message, 'success');
     }
 
-    // Показываем уведомление об ошибке
     showErrorNotification(message) {
         this.showNotification(message, 'danger');
     }
 
-    // Универсальный метод для показа уведомлений
     showNotification(message, type = 'info') {
-        // Создаем элемент уведомления
         const notification = document.createElement('div');
         notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
         notification.style.cssText = `
@@ -679,10 +646,8 @@ export class Sidebar {
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
         `;
 
-        // Добавляем в body
         document.body.appendChild(notification);
 
-        // Автоматически скрываем через 5 секунд
         setTimeout(() => {
             if (notification.parentElement) {
                 notification.remove();

@@ -27,9 +27,6 @@ class ChatMessage extends Model
         'created_at' => 'datetime',
     ];
 
-    /**
-     * Available filters for the model
-     */
     protected $allowedFilters = [
         'id'        => Where::class,
         'role'      => Where::class,
@@ -38,9 +35,6 @@ class ChatMessage extends Model
         'created_at'=> Where::class,
     ];
 
-    /**
-     * Available sorts for the model
-     */
     protected $allowedSorts = [
         'id',
         'role',
