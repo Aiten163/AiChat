@@ -2,62 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Notifications\ReportNotification;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
+use App\Http\Requests\ReportRequest;
+use App\Services\Report\ReportService;
+use Illuminate\Http\JsonResponse;
 
 class ReportController extends Controller
 {
-    public function store(Request $request)
+    public function __construct(
+        private readonly ReportService $reportService
+    ) {}
+
+    public function store(ReportRequest $request): JsonResponse
     {
-        if (!$request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Invalid request format'
-            ], 400);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'message' => 'required|string|min:5|max:2000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-        ], [
-            'message.required' => 'Пожалуйста, опишите вашу проблему',
-            'message.min' => 'Сообщение должно содержать не менее 5 символов',
-            'message.max' => 'Сообщение не должно превышать 2000 символов',
-            'image.image' => 'Файл должен быть изображением',
-            'image.mimes' => 'Поддерживаются только JPEG, PNG, JPG и GIF форматы',
-            'image.max' => 'Размер изображения не должен превышать 5MB',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'error' => $validator->errors()->first()
-            ], 422);
-        }
-
         try {
-            $imagePath = null;
-
-            if ($request->hasFile('image') && $request->file('image')->isValid()) {
-                $image = $request->file('image');
-                $fileName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-                $imagePath = $image->storeAs('reports', $fileName, 'public');
-
-                \Log::info('Image saved to public storage', [
-                    'path' => $imagePath,
-                    'full_url' => Storage::disk('public')->url($imagePath)
-                ]);
-            }
-
-            $user = auth()->user();
-            $admins = User::getAdmins();
-            foreach ($admins as $admin) {
-                $admin->notify(new ReportNotification($user, $request->message, $imagePath));
-            }
+            $this->reportService->sendReport(
+                user: auth()->user(),
+                message: $request->input('message'),
+                image: $request->file('image')
+            );
 
             return response()->json([
                 'success' => true,
@@ -65,16 +27,15 @@ class ReportController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            \Log::error('Error saving report: ' . $e->getMessage(), [
+            \Log::error('Report sending failed', [
                 'user_id' => auth()->id(),
-                'ip' => $request->ip()
+                'error' => $e->getMessage()
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Произошла ошибка при отправке сообщения. Пожалуйста, попробуйте позже.'
+                'error' => 'Произошла ошибка при отправке сообщения'
             ], 500);
         }
     }
-
 }

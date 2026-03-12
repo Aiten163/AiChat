@@ -2,39 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChatRenameRequest;
 use App\Models\Chat;
-use Illuminate\Http\Request;
+use App\Services\Chat\ChatManagementService;
+use Illuminate\Http\JsonResponse;
 
 class ChatController extends Controller
 {
-    public function rename(Chat $chat, Request $request)
+    public function __construct(
+        private readonly ChatManagementService $chatService
+    ) {}
+
+    public function rename(Chat $chat, ChatRenameRequest $request): JsonResponse
     {
-        if ($chat->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Доступ запрещен'], 403);
+        try {
+            $newName = $this->chatService->rename($chat, $request->input('name'));
+
+            return response()->json([
+                'success' => true,
+                'new_name' => $newName
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ошибка при переименовании чата'
+            ], 500);
         }
-
-        $request->validate(['name' => 'required|string|max:100']);
-
-        $chat->update(['name' => $request->name]);
-
-        return response()->json([
-            'success' => true,
-            'new_name' => $chat->name
-        ]);
     }
 
-    public function destroy(Chat $chat)
+    public function destroy(Chat $chat): JsonResponse
     {
-        if ($chat->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Доступ запрещен'], 403);
-        }
+        try {
+            $this->chatService->softDelete($chat);
 
-        $updated = $chat->update(['show' => false]);
-
-        if ($updated) {
-            return response()->json(['success' => true, 'message' => 'Чат удален']);
-        } else {
-            return response()->json(['error' => 'Ошибка при обновлении'], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Чат удален'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Ошибка при удалении чата'
+            ], 500);
         }
     }
 }

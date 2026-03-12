@@ -6,7 +6,6 @@ use App\Models\Base_prompt as BasePrompt;
 use Illuminate\Support\Facades\Cache;
 use Orchid\Support\Facades\Toast;
 use Orchid\Screen\Screen;
-use Orchid\Screen\Layouts\Table;
 use Orchid\Screen\TD;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Actions\ModalToggle;
@@ -47,7 +46,7 @@ class BasePromptScreen extends Screen
                 TD::make('id', 'ID')->sort(),
                 TD::make('name', 'Название'),
                 TD::make('prompt', 'Промт')->render(function (BasePrompt $prompt) {
-                    return \Illuminate\Support\Str::limit($prompt->prompt,200);
+                    return \Illuminate\Support\Str::limit($prompt->prompt, 200);
                 }),
                 TD::make('Действия')
                     ->align(TD::ALIGN_CENTER)
@@ -66,7 +65,6 @@ class BasePromptScreen extends Screen
                                 'id' => $prompt->id,
                             ])
                             ->confirm('Вы уверены, что хотите удалить этот промт?'),
-
                     ])),
             ]),
 
@@ -79,7 +77,6 @@ class BasePromptScreen extends Screen
                 ->applyButton('Сохранить')
                 ->closeButton('Отмена')
                 ->async('asyncGetPrompt'),
-
         ];
     }
 
@@ -100,14 +97,17 @@ class BasePromptScreen extends Screen
             'prompt' => ['required', 'string'],
         ]);
 
-        BasePrompt::updateOrCreate(
+        $prompt = BasePrompt::updateOrCreate(
             ['id' => $data['id'] ?? null],
             [
                 'name' => $data['name'],
                 'prompt' => $data['prompt'],
             ]
         );
-        Cache::set('base_prompt:' . $data['id'], $data['prompt']);
+
+        Cache::set('base_prompt:' . $prompt->id, $data['prompt']);
+
+        Cache::tags(['neurals'])->flush();
 
         Toast::info('Промт успешно сохранён!');
         return redirect()->route('platform.base-prompts');
@@ -115,8 +115,11 @@ class BasePromptScreen extends Screen
 
     public function delete(Request $request)
     {
-        BasePrompt::findOrFail($request->get('id'))->delete();
-        Cache::delete('base_prompt:' . $request->get('id'));
+        $id = $request->get('id');
+        BasePrompt::findOrFail($id)->delete();
+
+        Cache::delete('base_prompt:' . $id);
+        Cache::tags(['neurals'])->flush();
 
         Toast::info('Промт удалён!');
         return redirect()->route('platform.base-prompts');

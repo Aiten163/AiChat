@@ -5,10 +5,9 @@ namespace App\Orchid\Screens\NeuralFilters;
 use App\Models\Neural;
 use App\Models\NeuralFilter;
 use Illuminate\Http\Request;
-use Nette\Utils\Html;
+use Illuminate\Support\Facades\Cache;
 use Orchid\Screen\Actions\Button;
 use Orchid\Screen\Fields\Input;
-use Orchid\Screen\Fields\Quill;
 use Orchid\Screen\Fields\TextArea;
 use Orchid\Screen\Fields\CheckBox;
 use Orchid\Screen\Fields\Relation;
@@ -75,24 +74,24 @@ class NeuralFilterEditScreen extends Screen
                 CheckBox::make('filter.activeSimple')
                     ->title('Активировать простой фильтр')
                     ->sendTrueOrFalse()
-                  ]),
+            ]),
         ];
     }
 
     public function save(NeuralFilter $filter, Request $request)
     {
-        \Cache::forget('neuralFilter');
         $data = $request->get('filter');
         $neuralId = $data['neural_id'] ?? $filter->neural_id;
 
-        // Проверяем, хочет ли пользователь активировать хотя бы один тип фильтра
+        $neural = Neural::find($neuralId);
+        $neuralName = $neural?->name;
+
         $wantsToActivate = (
             (isset($data['activePrompt']) && $data['activePrompt']) ||
             (isset($data['activeSimple']) && $data['activeSimple'])
         );
 
         if ($wantsToActivate) {
-            // Деактивируем ВСЕ фильтры для этой нейросети (и промпт, и простой)
             NeuralFilter::where('neural_id', $neuralId)
                 ->update([
                     'activePrompt' => false,
@@ -100,21 +99,38 @@ class NeuralFilterEditScreen extends Screen
                 ]);
         }
 
-        // Сохраняем текущий фильтр с новыми значениями
         $filter->fill($data)->save();
+
+        Cache::forget('neuralFilter');
+
+        Cache::tags(['neural_filters'])->flush();
+
+        Cache::tags(['filter_results'])->flush();
+
+        if ($neuralName) {
+            Cache::tags(['neurals'])->forget('neural:name:' . $neuralName);
+        }
 
         Alert::success('Фильтр успешно сохранён.');
         return redirect()->route('platform.neural-filters.list');
     }
 
-
     public function remove(NeuralFilter $filter)
     {
-        \Cache::forget('neuralFilter');
+        $neural = $filter->neural;
+        $neuralName = $neural?->name;
+
         $filter->delete();
 
-        Alert::success('Фильтр удален.');
+        Cache::forget('neuralFilter');
+        Cache::tags(['neural_filters'])->flush();
+        Cache::tags(['filter_results'])->flush();
 
+        if ($neuralName) {
+            Cache::tags(['neurals'])->forget('neural:name:' . $neuralName);
+        }
+
+        Alert::success('Фильтр удален.');
         return redirect()->route('platform.neural-filters.list');
     }
 }

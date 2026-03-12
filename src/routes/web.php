@@ -1,28 +1,28 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OllamaController;
-use App\Http\Controllers\ChatController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use LdapRecord\Models\ActiveDirectory\User;
 use App\Http\Controllers\ReportController;
+use Illuminate\Support\Facades\Route;
 
-
-Route::get('/login', function () {
-    return redirect('/');
-});
-Route::post('/login',[\App\Http\Controllers\AuthController::class, 'login'])->name('login');
-Route::get('/',[HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-    Route::get('/getHistoryChat',[ HomeController::class, 'getHistoryChat']);
-    Route::get('/{chatId?}',[HomeController::class, 'index'])->whereNumber('chatId' )->name('home');
-    Route::get('/new-chat', function () {
-        return redirect('/');
+    Route::prefix('chats')->name('chats.')->group(function () {
+        Route::get('/history', [HomeController::class, 'getHistoryChat'])->name('history');
+        Route::post('/', [OllamaController::class, 'postRequest'])->name('store');
+        Route::post('{chat}/rename', [ChatController::class, 'rename'])->name('rename');
+        Route::delete('{chat}', [ChatController::class, 'destroy'])->name('destroy');
     });
-    Route::post('/postRequest', [OllamaController::class, 'postRequest'])->name('postRequest');
-    Route::post('/chats/{chat}/rename', [ChatController::class, 'rename'])->name('chats.rename');
-    Route::delete('/chats/{chat}', [ChatController::class, 'destroy'])->name('chats.destroy');
+
+    Route::get('/new-chat', fn() => redirect()->route('home'))->name('chat.new');
+
+    Route::get('/{chatId?}', [HomeController::class, 'index'])
+        ->where('chatId', '[0-9]+')  // Более явное условие
+        ->name('chat.show');
+
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

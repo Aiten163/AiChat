@@ -7,7 +7,7 @@ use LdapRecord\Models\ActiveDirectory\Group;
 
 class LdapService
 {
-    static function ldapLogin($username, $password)
+    public function ldapLogin(string $username, string $password): bool
     {
         try {
             $connection = new Connection(config('ldap.connections.default'));
@@ -21,8 +21,12 @@ class LdapService
             $group = Group::findByOrFail('cn', config('ldap.group'));
 
             return $group->members()->exists($user);
-
         } catch (\Exception $e) {
+            Log::error('LDAP login failed', [
+                'username' => $username,
+                'error' => $e->getMessage()
+            ]);
+
             return false;
         }
     }

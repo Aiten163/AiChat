@@ -2,45 +2,46 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ChatMessage;
-use App\Models\Neural;
-use http\Message;
+use App\Http\Requests\ChatHistoryRequest;
+use App\Services\Chat\ChatHistoryService;
+use App\Services\Neural\NeuralCacheService;
+use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Chat;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
-    public function index() {
-        $chats = Chat::where(['user_id' => auth()->id(), 'show' => true])
-            ->orderBy('id', 'desc')
-            ->get(['id', 'name','lastMessage']);
-
-        if (Cache::has('neurals')) {
-            $neurals = Cache::get('neurals');
-        } else {
-            $neurals = Neural::get(['show_name', 'name']);
-            Cache::set('neurals', $neurals, 3600);
-        }
-
-        return view('home', ['chats' => $chats, 'neurals' => $neurals]);
+    public function __construct(
+        private readonly ChatHistoryService $chatHistoryService,
+        private readonly NeuralCacheService $neuralCacheService
+    ) {
+        $this->middleware('auth')->except(['index']);
     }
 
-    public function getHistoryChat(Request $request)
+    public function index(?int $chatId = null): View
     {
-        $request->validate([
-            'chat_id' => 'required|integer'
+        $chats = collect();
+        $userId = Auth::id();
+
+        if ($userId) {
+            $chats = $this->chatHistoryService->getUserChats($userId);
+        }
+
+        $neurals = $this->neuralCacheService->getAllNeurals();
+
+        return view('home', [
+            'chats' => $chats,
+            'neurals' => $neurals,
+            'currentChatId' => $chatId
         ]);
+    }
 
-        $chat = Chat::where(['id' => $request->chat_id, "show" => true, 'user_id' => auth()->id()])
-            ->firstOrFail();
-
-        $messages = ChatMessage::where('chat_id', $request->chat_id)
-            ->select('message', 'role')
-            ->orderBy('created_at', 'asc')
-            ->get();
+    public function getHistoryChat(ChatHistoryRequest $request): JsonResponse
+    {
+        $messages = $this->chatHistoryService->getChatMessages(
+            $request->input('chat_id'),
+            auth()->id()
+        );
 
         return response()->json($messages);
     }

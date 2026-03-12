@@ -3,12 +3,11 @@
 namespace App\Orchid\Screens;
 
 use App\Models\Neural;
-use App\Models\Base_prompt; // Добавляем модель Base_prompt
+use App\Models\Base_prompt;
 use App\Orchid\Layouts\Neural\NeuralTable;
 use Cloudstudio\Ollama\Facades\Ollama;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Orchid\Screen\Actions\ModalToggle;
 use Orchid\Screen\Fields\Input;
 use Orchid\Screen\Fields\TextArea;
@@ -20,9 +19,6 @@ use Exception;
 
 class NeuralScreen extends Screen
 {
-    /**
-     * @var bool Статус подключения к Ollama
-     */
     private bool $ollamaAvailable = false;
 
     public function __construct()
@@ -34,7 +30,7 @@ class NeuralScreen extends Screen
     {
         return [
             'neurals' => Neural::with('basePrompt')
-            ->filters()
+                ->filters()
                 ->defaultSort('id')
                 ->paginate(),
             'ollama_available' => $this->ollamaAvailable,
@@ -58,7 +54,6 @@ class NeuralScreen extends Screen
 
     public function commandBar(): array
     {
-        // Блокируем добавление если Ollama недоступна
         if (!$this->ollamaAvailable) {
             return [];
         }
@@ -121,7 +116,6 @@ class NeuralScreen extends Screen
                     ->rows(3)
                     ->maxlength(150)
                     ->help('Максимум 150 символов'),
-
             ]))->title("Добавить нейросеть")->applyButton('Добавить');
 
             $layouts[] = Layout::modal('editNeural', Layout::rows([
@@ -129,43 +123,33 @@ class NeuralScreen extends Screen
 
                 Input::make('neural.name')
                     ->title('Системное название')
-                    ->placeholder('Например: gpt-4')
-                    ->help('Уникальное название для внутреннего использования. Изменение недоступно')
                     ->disabled()
                     ->required(),
 
                 Input::make('neural.show_name')
                     ->title('Отображаемое название')
-                    ->placeholder('Например: ChatGPT 4')
-                    ->help('Название, которое видят пользователи')
                     ->required(),
 
                 Input::make('neural.temperature')
                     ->title('Температура (0-100)')
                     ->type('number')
                     ->min(0)
-                    ->max(100)
-                    ->help('Уровень креативности нейросети'),
+                    ->max(100),
 
                 Input::make('neural.countLastMessage')
                     ->title('Количество последних сообщений')
                     ->type('number')
-                    ->min(1)
-                    ->help('Сколько предыдущих сообщений учитывать в контексте'),
+                    ->min(1),
 
                 Select::make('neural.base_prompt_id')
                     ->options($this->getBasePromptsOptions())
                     ->title('Базовый промт')
-                    ->help('Выберите профиль промта для этой нейросети')
                     ->empty('Не выбран'),
 
                 TextArea::make('neural.description')
                     ->title('Описание')
-                    ->placeholder('Краткое описание нейросети')
                     ->rows(3)
-                    ->maxlength(150)
-                    ->help('Максимум 150 символов'),
-
+                    ->maxlength(150),
             ]))->async('asyncGetNeural')->title('Редактировать нейросеть')->applyButton('Сохранить');
         } else {
             $layouts[] = Layout::view('admin.ollama-unavailable');
@@ -174,27 +158,16 @@ class NeuralScreen extends Screen
         return $layouts;
     }
 
-    /**
-     * Проверка подключения к Ollama
-     */
     private function checkOllamaConnection(): void
     {
         try {
             $models = Ollama::models();
             $this->ollamaAvailable = isset($models['models']) && is_array($models['models']);
-
-            if (!$this->ollamaAvailable) {
-                Toast::error('Ollama недоступна - некорректный формат ответа');
-            }
-
         } catch (Exception $e) {
             $this->ollamaAvailable = false;
         }
     }
 
-    /**
-     * Получить список доступных моделей
-     */
     private function getAvailableModels(): array
     {
         if (!$this->ollamaAvailable) {
@@ -203,20 +176,15 @@ class NeuralScreen extends Screen
 
         try {
             $models = Ollama::models();
-
             return collect($models['models'])
                 ->mapWithKeys(fn($model) => [$model['name'] => $model['name']])
                 ->toArray();
-
         } catch (Exception $e) {
             Toast::error('Ошибка получения списка моделей');
             return [];
         }
     }
 
-    /**
-     * Получить список базовых промтов для селектора
-     */
     private function getBasePromptsOptions(): array
     {
         try {
@@ -226,7 +194,6 @@ class NeuralScreen extends Screen
                 })
                 ->toArray();
         } catch (Exception $e) {
-            Toast::error('Ошибка загрузки списка промтов');
             return [];
         }
     }
@@ -246,7 +213,6 @@ class NeuralScreen extends Screen
         }
 
         $request->validate([
-            'neural.name' => 'string|max:40',
             'neural.show_name' => 'required|string|max:40',
             'neural.temperature' => 'required|integer|min:0|max:100',
             'neural.countLastMessage' => 'required|integer|min:1|max:20',
@@ -254,7 +220,11 @@ class NeuralScreen extends Screen
             'neural.base_prompt_id' => 'nullable|exists:base_prompts,id',
         ]);
 
-        Neural::find($request->input('neural.id'))->update($request->neural);
+        $neural = Neural::find($request->input('neural.id'));
+        $neural->update($request->neural);
+
+        Cache::tags(['neurals'])->flush();
+
         Toast::info('Нейросеть успешно обновлена');
     }
 
@@ -265,7 +235,11 @@ class NeuralScreen extends Screen
             return;
         }
 
-        Neural::find($request->neural)->delete();
+        $neural = Neural::find($request->neural);
+        $neural->delete();
+
+        Cache::tags(['neurals'])->flush();
+
         Toast::info('Нейросеть успешно удалена');
     }
 
@@ -286,7 +260,11 @@ class NeuralScreen extends Screen
         ]);
 
         $neural = Neural::create($request->all());
+
         Cache::set('neural:' . $neural->id, $neural);
+
+        Cache::tags(['neurals'])->flush();
+
         Toast::info('Нейросеть успешно добавлена');
     }
 }

@@ -2,19 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\LoginService;
+use App\Http\Requests\LoginRequest;
+use App\Services\Auth\LoginService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    public function login(request $request)
+    public function __construct(
+        private readonly LoginService $loginService
+    ) {}
+
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $username = $request->get('name');
-        $password = $request->get('password');
+        $this->loginService->login(
+            $request->input('name'),
+            $request->input('password')
+        );
 
-        $login = new LoginService($username, $password);
-        $login->login();
+        return redirect()->route('home');
+    }
 
-        return redirect('/');
+    public function logout(Request $request): RedirectResponse
+    {
+        $this->loginService->logout();
+        return redirect()->route('home');
     }
 }

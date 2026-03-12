@@ -2,7 +2,7 @@
 
 namespace App\Orchid\Screens;
 
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Orchid\Screen\Fields\Label;
 use Orchid\Support\Facades\Toast;
@@ -18,11 +18,20 @@ class EmailSettingsScreen extends Screen
     public $name = 'Настройка почты';
     public $description = 'Настройка параметров электронной почты';
 
+    private const CACHE_KEY = 'mail_settings';
+
     private function getMailSettings()
     {
-        if (Storage::exists('mail_settings.json')) {
-            return json_decode(Storage::get('mail_settings.json'), true);
+        if (Cache::tags(['settings'])->has(self::CACHE_KEY)) {
+            return Cache::tags(['settings'])->get(self::CACHE_KEY);
         }
+
+        if (Storage::exists('mail_settings.json')) {
+            $settings = json_decode(Storage::get('mail_settings.json'), true);
+            Cache::tags(['settings'])->put(self::CACHE_KEY, $settings, 3600);
+            return $settings;
+        }
+
         return [];
     }
 
@@ -61,24 +70,23 @@ class EmailSettingsScreen extends Screen
                     ->placeholder('Ai Chat'),
             ]),
 
-                Layout::rows([
-                    Label::make('')
-                        ->title('Настройка для сообщений с нарушением информационной безопасности пользователям')
-                        ->class('fw-bold fs-5'),
-                    Input::make('messageTheme')
-                        ->title('Тема сообщения')
-                        ->placeholder('Введите тему сообщения'),
+            Layout::rows([
+                Label::make('')
+                    ->title('Настройка для сообщений с нарушением информационной безопасности пользователям')
+                    ->class('fw-bold fs-5'),
+                Input::make('messageTheme')
+                    ->title('Тема сообщения')
+                    ->placeholder('Введите тему сообщения'),
 
-                    Input::make('messageGreeting')
-                        ->title('Приветствие')
-                        ->placeholder('*Приветствие*, *Имя пользователя*')
-                        ->autofocus(false),
+                Input::make('messageGreeting')
+                    ->title('Приветствие')
+                    ->placeholder('*Приветствие*, *Имя пользователя*'),
 
-                    TextArea::make('messageText')
-                        ->title('Текст сообщения')
-                        ->rows(5)
-                        ->placeholder('Введите текст сообщения'),
-                ]),
+                TextArea::make('messageText')
+                    ->title('Текст сообщения')
+                    ->rows(5)
+                    ->placeholder('Введите текст сообщения'),
+            ]),
 
             Layout::rows([
                 Button::make('Сохранить')
@@ -108,7 +116,7 @@ class EmailSettingsScreen extends Screen
             'mail_message_theme' => $validated['messageTheme'] ?? $currentSettings['mail_message_theme'] ?? '',
             'mail_message_greeting' => $validated['messageGreeting'] ?? $currentSettings['mail_message_greeting'] ?? '',
             'mail_message_text' => $validated['messageText'] ?? $currentSettings['mail_message_text'] ?? '',
-            // CONST
+
             'mail_host' => 'smtp.yandex.ru',
             'mail_encryption' => 'ssl',
             'mail_port' => 465
@@ -122,10 +130,9 @@ class EmailSettingsScreen extends Screen
 
         Storage::put('mail_settings.json', json_encode($mailSettings, JSON_PRETTY_PRINT));
 
-        \Cache::forget('mail_settings');
+        Cache::tags(['settings'])->forget(self::CACHE_KEY);
 
         Toast::success('Настройки почты успешно сохранены!');
-
         return back();
     }
 }

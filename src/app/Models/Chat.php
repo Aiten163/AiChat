@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Chat extends Model
 {
     use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -15,6 +16,11 @@ class Chat extends Model
         'name',
         'show',
         'lastMessage',
+    ];
+
+    protected $casts = [
+        'show' => 'boolean',
+        'lastMessage' => 'datetime'
     ];
 
     public function user()
@@ -26,9 +32,17 @@ class Chat extends Model
     {
         return $this->hasMany(ChatMessage::class);
     }
+
     public function getLastMessages($number = 1)
     {
-        return $this->chatMessages()->latest()->limit($number)->get(['message', 'role']);
+        return $this->chatMessages()
+            ->latest()
+            ->limit($number)
+            ->get(['message', 'role']);
     }
 
+    public function isOwnedBy(int $userId): bool
+    {
+        return $this->user_id === $userId;
+    }
 }

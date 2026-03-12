@@ -12,10 +12,19 @@ RUN apt-get update && apt-get install -y \
     libldap2-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Устанавливаем необходимые расширения PHP
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
+# Устанавливаем ldap расширение
 RUN docker-php-ext-configure ldap --with-libdir=lib/x86_64-linux-gnu/ \
     && docker-php-ext-install ldap
+
+# Устанавливаем Redis расширение через PECL
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Альтернативный способ, если PECL не работает:
+# RUN git clone https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \
+#     && docker-php-ext-install redis
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 

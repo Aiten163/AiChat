@@ -11,6 +11,7 @@ use Orchid\Platform\Models\User as Authenticatable;
 class User extends Authenticatable
 {
     use Filterable;
+
     protected $fillable = [
         'name',
         'email',
@@ -46,18 +47,27 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserActivity::class);
     }
+
+    public function chats()
+    {
+        return $this->hasMany(Chat::class);
+    }
+
     public function hasAccess(string $permission, $cache = true): bool
     {
         return $this->is_admin;
     }
+
     public function username()
     {
         return 'login';
     }
+
     public function isAdmin(): bool
     {
         return (bool) $this->is_admin;
     }
+
     public function getAuthPassword()
     {
         return '';
@@ -67,5 +77,4 @@ class User extends Authenticatable
     {
         return self::where('is_admin', true)->get();
     }
-
 }
